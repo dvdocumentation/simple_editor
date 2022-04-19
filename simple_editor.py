@@ -2334,7 +2334,7 @@ if __name__ == "__main__":
         if event==get_locale('qr_settings'):
             sg.popup(get_locale("vpn_note"),     keep_on_top=True)    
             jqr = {
-            "onlineURL": socket.gethostbyname(socket.gethostname())+":"+str(WSPORT),
+            "RawConfigurationURL":"http://"+ socket.gethostbyname(socket.gethostname())+":"+str(WSPORT)+"/get_conf",
             "RawConfigurationServiceAuth": "",
             "RawConfigurationServiceON": True,
             "OnlineSplitMode": True,
