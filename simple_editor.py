@@ -2935,11 +2935,11 @@ if __name__ == "__main__":
             data_selected = [data_screens[row] for row in values[event]]
             if len(values['ScreensTable'])>0:
                 row_selected = values['ScreensTable'][0]
-            jcurrent_screen = all_screens_list[row_selected]
-            set_visibility(jcurrent_screen)
+                jcurrent_screen = all_screens_list[row_selected]
+                set_visibility(jcurrent_screen)
 
-            load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
-            window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
+                load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
+                window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
             
         if event == 'ScreenLinesTable':
             #print(event)
