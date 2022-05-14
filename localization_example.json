@@ -1,0 +1,20 @@
+{
+    "ru": {
+        "goods_scanning": "*Сканирование товара",
+        "scan_barcode": "*-*Сканируйте штрихкод*-*",
+        "cv_stocks": "Просмотр остатков ActiveCV",
+        "Barcode": "Штрихкод",
+        "Qty": "Кол-во",
+        "stoks": "Состояние склада",
+        "balances": "Текущие остатки"
+    },
+    "en": {
+        "goods_scanning": "Goods performing",
+        "scan_barcode": "Scan the barcode",
+        "cv_stocks": "ActiveCV balances",
+        "Barcode": "Barcode",
+        "Qty": "Qty.",
+        "stoks": "Stock balance",
+        "balances": "Current balance"
+    }
+}

@@ -1,8 +1,7 @@
-from dataclasses import replace
-from multiprocessing.dummy import current_process
+
 from threading import Event, Thread
 
-from turtle import left, update
+
 import PySimpleGUI as sg
 import json
 import base64
@@ -29,6 +28,10 @@ import socket
 
 import pyperclip
 import glob
+
+import ast
+
+
 
 WSPORT = 5000
 device_url=None
@@ -186,6 +189,7 @@ class CodeUpdateThread(Thread):
 def update_conf(write_file=True):
     global window
     global configuration_json
+    global conf_filename
 
     isPython = False
     isOnline = False
@@ -285,6 +289,8 @@ layout_listener_online = [
 
               ]  
 
+
+data_recognition=[]
 layout_common_cv =[
     [sg.Text(get_locale("cv_step_name") ),sg.Input(do_not_clear=True, key='step_name',enable_events=True)],
     [sg.Text(get_locale("detector")),sg.Combo(captions_detector_elements,key='CVFrame_detector',enable_events=True)],
@@ -294,8 +300,8 @@ layout_common_cv =[
     [sg.Text(get_locale("action_header")),sg.Input(do_not_clear=True, key='CVAction',enable_events=True)],
     [sg.Text(get_locale("info_header")),sg.Input(do_not_clear=True, key='CVInfo',enable_events=True)],
     [sg.Text(get_locale("camera_mode")),sg.Combo(captions_camera_mode_elements, key='CVCameraDevice',enable_events=True)],
-    [sg.Text(get_locale("detector_mode")),sg.Combo(captions_detector_mode_elements, key='CVDetectorMode',enable_events=True)]
-  
+    [sg.Text(get_locale("detector_mode")),sg.Combo(captions_detector_mode_elements, key='CVDetectorMode',enable_events=True)],
+    [sg.Text(get_locale('recognition_template'),size=35),sg.Combo(data_recognition,key='cvrecognition_type',enable_events=True,expand_x=True)]        
     
     ]
 
@@ -394,6 +400,8 @@ def set_visibility(jcurrent_screen):
             window['CVFrameDefAction'].update(jcurrent_screen.get('CVFrameDefAction',''))
             window['CVFrameDefOnTouch'].update(jcurrent_screen.get('CVFrameDefOnTouch',''))
 
+          
+            window['cvrecognition_type'].update(jcurrent_screen.get('RecognitionTemplate'))
 
         else:
             window['tab_screen'].update(visible=True)
@@ -625,8 +633,17 @@ def show_input(f,jelement,caption):
         if f=='NumberPrecision':
             layout = [sg.Text(caption,size=35),sg.Input(key=f,default_text= jelement.get(f,'-1'),enable_events=True)]
         else: 
-            layout =  [sg.Text(caption,size=35),sg.Input(key=f,enable_events=True,default_text= jelement.get(f))]      
-        
+            layout =  [sg.Text(caption,size=35),sg.Input(key=f,enable_events=True,default_text= jelement.get(f))]     
+            if f=='query' :
+                q=''
+                try:
+                    q =  b64=base64.b64decode(jelement.get(f).encode('utf-8')).decode('utf-8')
+                except:
+                    q=jcurrent_recognition.get('query')
+                layout =  [sg.Text(caption,size=35),sg.Input(key=f,enable_events=True,default_text= q)]         
+            else:
+                layout =  [sg.Text(caption,size=35),sg.Input(key=f,enable_events=True,default_text= jelement.get(f))]         
+
     return layout
 
 def show_checkbox(f,jelement,caption):
@@ -736,7 +753,7 @@ def show_edit(type,editwindow,jelement,is_layout=False):
 
         layoutRecognition=[]
         if type=='Vision':    
-            layoutRecognition = [[sg.Text(get_locale('recognition_template'),size=35),sg.Combo(data_recognition,key='regognition_type',enable_events=True,default_value=jelement.get('RegognitionTemplate'))]]        
+            layoutRecognition = [[sg.Text(get_locale('recognition_template'),size=35),sg.Combo(data_recognition,key='recognition_type',enable_events=True,default_value=jelement.get('RecognitionTemplate'))]]        
 
         if is_layout:
             default_value= get_synonym(layout_elements,type)
@@ -875,7 +892,10 @@ def save_style_values_event( jcurrent_style,event,values,write_conf=False):
                 
 
                 if 'height' in values and write_conf:    
-                    if get_key(scale_elements,values.get('height',''))=='manual' and values.get('height_value','')>0:
+
+                    #if isinstance(values.get('height_value',''), int)   
+
+                    if get_key(scale_elements,values.get('height',''))=='manual':
                         if len(values.get('height_value',''))>0:
                             jcurrent_style['height']=int(values['height_value'])
                         else:
@@ -1081,8 +1101,12 @@ def set_visibility_recognition(rwindow,jcurrent_recognition,element_form=False):
                 
                 rwindow['ocr_frame'].update(visible=True)
 
+        try:
+            q =  b64=base64.b64decode(jcurrent_recognition.get('query').encode('utf-8')).decode('utf-8')
+        except:
+            q=jcurrent_recognition.get('query')
 
-        rwindow['query'].update(jcurrent_recognition.get('query'),disabled=False)
+        rwindow['query'].update(q,disabled=False)
         rwindow['values_list'].update(jcurrent_recognition.get('values_list'),disabled=False)
         rwindow['mesure_qty'].update(jcurrent_recognition.get('mesure_qty'),disabled=False)
         rwindow['min_freq'].update(jcurrent_recognition.get('min_freq'),disabled=False)
@@ -1143,7 +1167,8 @@ def save_recognition_values_event( jcurrent_recognition,event,values):
 
 
     if event==  'query':  
-                jcurrent_recognition['query'] = values['query'] 
+                b64=base64.b64encode(values['query'] .encode('utf-8')).decode('utf-8')
+                jcurrent_recognition['query'] = b64
     elif event==  'values_list':  
                 jcurrent_recognition['values_list'] = values['values_list'] 
     elif event==  'mesure_qty':  
@@ -1166,10 +1191,10 @@ def save_recognition_values_event( jcurrent_recognition,event,values):
                 jcurrent_recognition['result_field'] = values['result_field'] 
                 if 'cursor' in jcurrent_recognition:
                    cursorstr =  jcurrent_recognition['cursor'][0]
-                   cursorstr['title'] =values['result_field']
+                   cursorstr['field'] =values['result_field']
                 else:
                    jcurrent_recognition['cursor']=[]    
-                   jcurrent_recognition['cursor'].append({"title":values['result_field']})
+                   jcurrent_recognition['cursor'].append({"field":values['result_field']})
 
     elif event==  'result_var':  
                 jcurrent_recognition['result_var'] = values['result_var'] 
@@ -1349,9 +1374,9 @@ def edit_element_form(row,elements,is_layout=False):
                 pyperclip.copy(json.dumps(jcurrent_screen_line,ensure_ascii=False,indent=4, separators=(',', ': ')).replace("true","True").replace("false","False"))
                 #spam = pyperclip.paste()
                                 
-                break    
+                   
 
-            if e_event == 'btn_delete_layout_line':
+            if e_event == 'btn_delete_screen_line':
 
                 jcurrent_screen['Elements'].remove(jcurrent_screen_line)
                 #update_code(configuration_json)
@@ -1459,20 +1484,30 @@ def edit_element_form(row,elements,is_layout=False):
 
                 editwindow =show_edit(get_key(screen_elements,e_values['type']),editwindow,elements,is_layout)
 
+                if get_key(screen_elements,e_values['type'])=='Vision':
+                    elements['type']='Vision'  
 
 
             if e_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','drawable','NumberPrecision','height_value','width_value','value','variable']:
                 save_style_values_event(elements,e_event,e_values,True)
                 #set_visibility_style(editwindow,elements,True,elements.get('type')=='LinearLayout')
-
+            if e_event=='recognition_type':
+                #Временное решение
+                if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
+                
+                
+                
+                    elements["VisionSettings"]=json.dumps(next(item for item in configuration_json['ClientConfiguration']['RecognitionTemplates'] if item["name"] == e_values['recognition_type']),ensure_ascii=False,indent=4, separators=(',', ': '))
+                    elements["RecognitionTemplate"]=  e_values['recognition_type']
             if e_event == 'LayoutTable':
                 #print(e_event)
-                row_selected = e_values['LayoutTable'][0]
-                jcurrent_layout = elements['Elements'][row_selected] 
-                edit_element_form(row_selected,jcurrent_layout,True) 
+                if len(e_values['LayoutTable'])>0:
+                    row_selected = e_values['LayoutTable'][0]
+                    jcurrent_layout = elements['Elements'][row_selected] 
+                    edit_element_form(row_selected,jcurrent_layout,True) 
 
-                data_container_lines = get_data_container_lines(elements)
-                editwindow['LayoutTable'].update(values=data_container_lines[1:][:])
+                    data_container_lines = get_data_container_lines(elements)
+                    editwindow['LayoutTable'].update(values=data_container_lines[1:][:])
 
             if  e_event == 'style_name':
                 elements['style_name']=e_values['style_name']
@@ -1629,7 +1664,8 @@ def save_screen_values(values):
 
             jcurrent_screen['DefOnCreate'] = values['screen_defpython_oncreate']  
             jcurrent_screen['DefOnInput'] = values['screen_defpython_oninput']  
-            
+
+                    
             jcurrent_screen['onlineOnStart']=len(jcurrent_screen['DefOnlineOnCreate'])>0
             jcurrent_screen['onlineOnInput']=len(jcurrent_screen['DefOnlineOnInput'])>0
  
@@ -1656,6 +1692,13 @@ def save_screen_values(values):
              jcurrent_screen['CVFrameDefOnNewObject'] = values['CVFrameDefOnNewObject']  
              jcurrent_screen['CVFrameDefAction'] = values['CVFrameDefAction']  
              jcurrent_screen['CVFrameDefOnTouch'] = values['CVFrameDefOnTouch']  
+
+             if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
+                 
+                    jcurrent_screen["CVRecognitionSettings"]=json.dumps(next(item for item in configuration_json['ClientConfiguration']['RecognitionTemplates'] if item["name"] == values['cvrecognition_type']),ensure_ascii=False,indent=4, separators=(',', ': '))
+                    jcurrent_screen["RecognitionTemplate"]=  values['cvrecognition_type']
+
+
           
              load_cvsteps()
              window['ScreensTable'].update(values=data_screens[1:][:]) 
@@ -1738,6 +1781,14 @@ def save_screen_values_event(event,values):
                 jcurrent_screen['CVFrameDefAction'] = values['CVFrameDefAction']  
              if event==  'CVFrameDefOnTouch':
                 jcurrent_screen['CVFrameDefOnTouch'] = values['CVFrameDefOnTouch']     
+
+
+             if event==  'cvrecognition_type':   
+                if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
+                 
+                    jcurrent_screen["CVRecognitionSettings"]=json.dumps(next(item for item in configuration_json['ClientConfiguration']['RecognitionTemplates'] if item["name"] == values['cvrecognition_type']),ensure_ascii=False,indent=4, separators=(',', ': '))
+                    jcurrent_screen["RecognitionTemplate"]=  values['cvrecognition_type']
+   
 
     update_conf()
 
@@ -2040,7 +2091,131 @@ def init_variables():
     jcurrent_timers=None
     jcurrent_style=None    
     
+def create_project():
+    global window
+    global configuration_json
+    global jcurrent_screen
+    global conf_filename
+
+    conf_filename = sg.popup_get_file(get_locale('create_file_project'), save_as=True,no_window=True,file_types=[("Simple UI configuration text files (*.ui)", "*.ui")])    
+
+    if not conf_filename == None:
+        if len(conf_filename)>0:
+            window.set_title(conf_filename) 
+
+                #set_visibility_main_tabs(True)
+
+
+            init_variables()
+
+                #generating new uuid for SimpleUI configuration
+            current_uid = uuid.uuid4().hex
+                #create simple template of SimpleUi configuration
+            configuration_json={"ClientConfiguration":
+            {"ConfigurationName": get_locale('new_configuration'),"ConfigurationDescription": get_locale('new_configuration_decription'), "ConfigurationVersion": "0.0.1", "Processes":[
+                                {
+                            "type": "Process",
+                            "ProcessName": get_locale('new_process'),
+                            "PlanFactHeader": get_locale('plan_fact'),
+                            "DefineOnBackPressed": False,
+                            "hidden": False,
+                            "login_screen": False,
+                            "SC": False,
+                            "Operations": [
+                            {
+                                "type": "Operation",
+                                "Name": get_locale('new_screen') ,
+                                "Timer": False,
+                                "hideToolBarScreen": False,
+                                "noScroll": False,
+                                "handleKeyUp": False,
+                                "noConfirmation": False,
+                                "hideBottomBarScreen": False,
+                                "onlineOnStart": False,
+                                "send_when_opened": False,
+                                "onlineOnInput": False,
+                                "DefOnlineOnCreate": "",
+                                "DefOnlineOnInput": "",
+                                "DefOnCreate": "",
+                                "DefOnInput": "",
+                                "Elements":[]
+                            }
+                                ]
+                    }
+                ]
+                ,
+                "ConfigurationSettings":   {
+                    "uid": current_uid
+                }
+                }
+                }
+                
+                #Visualizing the configuration structure
+            load_configuration_properties()    
+            load_processes(True)
+            load_screens(True)
+            load_screen_lines(False,True)    
+            set_visibility(jcurrent_screen)    
+            init_configuration(window)
+
+            update_conf()
  
+def open_project():
+    global window
+    global configuration_json
+    global jcurrent_screen
+    global conf_filename
+    
+    conf_filename = sg.popup_get_file(get_locale("file_open_dialog"),no_window=True,file_types=[("Simple UI configuration text files (*.ui)", "*.ui")])    
+
+    if not conf_filename==None:
+
+                #set_visibility_main_tabs(True)
+        
+        if len(conf_filename)>0:
+            window.set_title(conf_filename)
+
+            with open(conf_filename, encoding="utf-8") as json_file:
+                configuration_json = json.load(json_file)
+                    
+                init_variables()
+
+                load_configuration_properties()    
+                load_processes()
+                load_screens()
+                load_screen_lines()    
+                set_visibility(jcurrent_screen)    
+                init_configuration(window)
+
+                data_recognition = []
+                if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
+                    for elem in configuration_json['ClientConfiguration']['RecognitionTemplates']:
+                        data_recognition.append(elem['name'])
+
+                window['cvrecognition_type'].update(values = data_recognition)
+
+                update_conf(False)  
+
+                if not current_uid==None:
+                    handlers_filename =  settings_global.get("handlers_filename"+current_uid)
+                    if not handlers_filename == None:
+                        window['conf_file_python'].update(handlers_filename)
+
+                    shandlers_list = settings_global.get("handlers_list"+current_uid)
+                    if not shandlers_list==None:
+                        try:
+                            if len(shandlers_list)>0:
+                                jhandlers_list = json.loads(shandlers_list)
+                                
+                                for elem in jhandlers_list:
+                                        data_pyfilenames.append({"key":elem['alias'],"filename":elem['filename']})
+
+                                load_pyfiles()
+
+                        except Exception:
+                                print("Error reading settings...")        
+
+
 
 #web server initialization for configuration translation
 app = Flask(__name__)
@@ -2103,7 +2278,7 @@ if __name__ == "__main__":
     [sg.Text(get_locale('client_code') ,size=35),sg.Input(do_not_clear=True, key='confoptions_client_code',enable_events=True,expand_x=True)],
     [sg.Text(get_locale('handlers_url') ,size=35),sg.Input(do_not_clear=True, key='confoptions_handlers_url',enable_events=True,expand_x=True)],
     [sg.Text(get_locale('handlers_login'),size=35),sg.Input(do_not_clear=True, key='confoptions_handlers_login',enable_events=True),sg.Text(get_locale('handlers_password') ),sg.Input(do_not_clear=True, key='confoptions_handlers_password',enable_events=True),sg.Text(get_locale('handlers_authorization_string')),sg.Input(do_not_clear=True, key='confoptions_handlers_auth',enable_events=True)],
-    [sg.Text("**dictionaries (under construction)",size=35),sg.Input(do_not_clear=True, key='confoptions_dictionaries',enable_events=True,expand_x=True)]
+    [sg.Text(get_locale('dictionaries'),size=35),sg.Input(do_not_clear=True, key='confoptions_dictionaries',enable_events=True,expand_x=True)]
     
     ]
 
@@ -2150,9 +2325,9 @@ if __name__ == "__main__":
     data=[[get_locale('headings_processes')],['']]
     data_screens=[[get_locale('screens') ],['']]
 
-    menu_def = [['&'+get_locale("file"), ['&'+get_locale('create_project'),'&'+get_locale("open_project"),get_locale("qr_settings"),get_locale("sql_console"),get_locale("language")]],['&'+get_locale("project_templates"), ['&'+get_locale("style_templates"),'&'+get_locale("recognition_templates")]],
+    menu_def = [['&'+get_locale("file"), ['&'+get_locale('create_project'),'&'+get_locale("open_project"),get_locale("create_debug"),get_locale("qr_settings"),get_locale("sql_console"),get_locale("language")]],['&'+get_locale("project_templates"), ['&'+get_locale("style_templates"),'&'+get_locale("recognition_templates")]],
                     ]
-
+    
 
     empty_layout = [[sg.Menu(menu_def)]]
     layout = [[sg.Menu(menu_def)],
@@ -2163,7 +2338,7 @@ if __name__ == "__main__":
 
      sg.Column([
 
-    [sg.Button(get_locale('add_process'),key="btn_add_process"),sg.Button(get_locale('add_process_cv'),key="btn_add_process_cv"), sg.Button(get_locale('delete_process'),key="btn_delete_process")],
+    [sg.Button(get_locale('add_process'),key="btn_add_process"),sg.Button(get_locale('add_process_cv'),key="btn_add_process_cv"), sg.Button(get_locale('delete_process'),key="btn_delete_process"), sg.Button(get_locale('copy_to_clipboard'),key="btn_copy_process"), sg.Button(get_locale('paste_from_clipboard'),key="btn_paste_process")],
     [sg.Table(values=data[1:][:], headings=headings,
                         
                         display_row_numbers=False,
@@ -2194,7 +2369,7 @@ if __name__ == "__main__":
                         [sg.Checkbox(text=get_locale('run_at_start') ,enable_events=True,key='login_screen')],
                         [sg.Text(get_locale('plan_fact_header') ,key='pf_header',size=35),sg.Input(do_not_clear=True, key='PlanFactHeader',enable_events=True,expand_x=True)],
                         [sg.Checkbox( text=get_locale('independent_process'),key="SC",enable_events=True)],
-                        [sg.Button(get_locale('process_to_clipboard') ,key='btn_get_process_base')]
+                        #[sg.Button(get_locale('process_to_clipboard') ,key='btn_get_process_base')]
                         
                         ],key='process_column',expand_x=True)
                         
@@ -2202,7 +2377,7 @@ if __name__ == "__main__":
            # [sg.HorizontalSeparator()],
             [sg.Column([
 
-            [sg.Button(get_locale('add_screen_step'),key="btn_add_screen"), sg.Button(get_locale('delete_screen') ,key="btn_delete_screen")],
+            [sg.Button(get_locale('add_screen_step'),key="btn_add_screen"), sg.Button(get_locale('delete_screen') ,key="btn_delete_screen"), sg.Button(get_locale('copy_to_clipboard') ,key="btn_copy_screen"), sg.Button(get_locale('paste_from_clipboard') ,key="btn_paste_screen")],
             [sg.Table(values=data_screens[1:][:], headings=headings_screens,def_col_width=75,col_widths=[75],auto_size_columns=False,
                         #auto_size_columns=True,
                         display_row_numbers=False,
@@ -2252,10 +2427,27 @@ if __name__ == "__main__":
 
         
 
+    rlayout = [
+            [sg.Text(get_locale("create_or_open"))],
+            [sg.Text()],
+            [sg.Button(get_locale(get_locale('create_project')),key='start_createproject',expand_x=True), sg.Button(get_locale(get_locale('open_project')),key='start_openproject',expand_x=True)]
+            ]
+    
+    startwindow = sg.Window(get_locale("edit_record"), rlayout,icon='ic_32.ico',modal=True)
+    startevent, rvalues = startwindow.read()
+    startwindow.close()  
+
+    exit=False
+    if startevent=='Cancel' or  startevent==None:
+        exit=True    
+    elif startevent=='start_createproject':
+        create_project()
+    elif startevent=='start_openproject':
+        open_project()   
               
 
     # ------ Event Loop ------
-    while True:
+    while True and not exit:
         event, values = window.read()
         #print(event, values)
         if event == sg.WIN_CLOSED:
@@ -2264,70 +2456,88 @@ if __name__ == "__main__":
         update_conf(False)    
         
         #Main menu- Create Project
-        if event==get_locale('create_project'):
-            conf_filename = sg.popup_get_file(get_locale('create_file_project'), save_as=True,no_window=True,file_types=[("Simple UI configuration text files (*.ui)", "*.ui")])    
+        if event==get_locale('create_project') :
+            create_project()           
+         
+        #----------Creating debug Flask-based *.py-file
+        if event==get_locale('create_debug'):
+            debug_template_filename = "_debug_template.py"
+            debug_output_filename='debug_handlers.py'
+            code=''
+            handlerscode=''
+            outputcode=''
 
-            if not conf_filename == None:
-                if len(conf_filename)>0:
-                    window.set_title(conf_filename) 
+            list_of_debug=[]
 
-                #set_visibility_main_tabs(True)
+            if 'Processes' in configuration_json['ClientConfiguration']:        
+                for process in configuration_json['ClientConfiguration']['Processes']:
+                    if process['type']=='Process' and 'Operations' in process:
+                        for operation in process['Operations']:
+                            if  len(operation.get('DefOnCreate',''))>1: 
+                                if operation.get('DefOnCreate','')[0:1]=="_":
+                                    list_of_debug.append(operation.get('DefOnCreate',''))
+                            if  len(operation.get('DefOnInput',''))>1: 
+                                if operation.get('DefOnInput','')[0:1]=="_":
+                                    list_of_debug.append(operation.get('DefOnInput',''))
+                           
+                            
+                    if process['type']=='CVOperation' and 'CVFrames' in process:
+                        for operation in process['CVFrames']:
+                                                                 
+                                if len(operation.get('CVFrameDefOnCreate',''))>0 :
+                                    if operation.get('CVFrameDefOnCreate','')[0:1]=="_":
+                                        list_of_debug.append(operation.get('CVFrameDefOnCreate',''))
+
+                                if len(operation.get('CVFrameDefAction',''))>0 :
+                                    if operation.get('CVFrameDefAction','')[0:1]=="_":
+                                        list_of_debug.append(operation.get('CVFrameDefAction',''))
+
+                                if len(operation.get('CVFrameDefOnTouch',''))>0 :
+                                    if operation.get('CVFrameDefOnTouch','')[0:1]=="_":
+                                        list_of_debug.append(operation.get('CVFrameDefOnTouch',''))
+
+                                if len(operation.get('CVFrameDefOnNewObject',''))>0 :
+                                    if operation.get('CVFrameDefOnNewObject','')[0:1]=="_":
+                                        list_of_debug.append(operation.get('CVFrameDefOnNewObject',''))
+
+                           
+
+            if os.path.isfile(handlers_filename):
+                with open(handlers_filename, 'r', encoding='utf-8') as f:
+                    handlerscode = f.read()
+            node = ast.parse(handlerscode)
+            
+            begincode=''
+            endcode=''
+
+            if os.path.isfile(debug_template_filename):
+                with open(debug_template_filename, 'r', encoding='utf-8') as f:
+                    code = f.read()
+                    if code.find("#-BEGIN CUSTOM HANDLERS")>0:
+                        begincode = code[0:code.find("#-BEGIN CUSTOM HANDLERS")+len("#-BEGIN CUSTOM HANDLERS")]+os.linesep
+                        endcode = code[code.find("#-END CUSTOM HANDLERS"):]
+                        #print(code[])
+                for _funcname in list_of_debug:
+                    funcname = _funcname[1:]
+
+                    for x in ast.walk(node):
+                        if isinstance(x, ast.FunctionDef):
+                            if x.name==funcname:    
+                                ch = ast.get_source_segment(handlerscode, x)
+
+                                ch = ch.replace(funcname,_funcname)
+                                ch = ch.replace("(hashMap,_files=None,_data=None)","()")
+                               
+
+                                begincode+=os.linesep+ch+os.linesep
 
 
-                init_variables()
+                outputcode=begincode+endcode
+            
+                with open(debug_output_filename, 'w', encoding='utf-8') as f:
+                    f.write(outputcode)
+                    f.close()
 
-                #generating new uuid for SimpleUI configuration
-                current_uid = uuid.uuid4().hex
-                #create simple template of SimpleUi configuration
-                configuration_json={"ClientConfiguration":
-                {"ConfigurationName": get_locale('new_configuration'),"ConfigurationDescription": get_locale('new_configuration_decription'), "ConfigurationVersion": "0.0.1", "Processes":[
-                                {
-                            "type": "Process",
-                            "ProcessName": get_locale('new_process'),
-                            "PlanFactHeader": get_locale('plan_fact'),
-                            "DefineOnBackPressed": False,
-                            "hidden": False,
-                            "login_screen": False,
-                            "SC": False,
-                            "Operations": [
-                            {
-                                "type": "Operation",
-                                "Name": get_locale('new_screen') ,
-                                "Timer": False,
-                                "hideToolBarScreen": False,
-                                "noScroll": False,
-                                "handleKeyUp": False,
-                                "noConfirmation": False,
-                                "hideBottomBarScreen": False,
-                                "onlineOnStart": False,
-                                "send_when_opened": False,
-                                "onlineOnInput": False,
-                                "DefOnlineOnCreate": "",
-                                "DefOnlineOnInput": "",
-                                "DefOnCreate": "",
-                                "DefOnInput": "",
-                                "Elements":[]
-                            }
-                                ]
-                    }
-                ]
-                ,
-                "ConfigurationSettings":   {
-                    "uid": current_uid
-                }
-                }
-                }
-                
-                #Visualizing the configuration structure
-                load_configuration_properties()    
-                load_processes(True)
-                load_screens(True)
-                load_screen_lines(False,True)    
-                set_visibility(jcurrent_screen)    
-                init_configuration(window)
-
-                update_conf()
-        
         #----------Create SimpleUI configuration settings QR code for device connection. 
         # The URL of the service must be encoded in the QR code. 
         # This is the IP address of the computer running the constructor and the port of the Flask server.
@@ -2425,47 +2635,9 @@ if __name__ == "__main__":
                 sg.popup(get_locale("restart_note"),     keep_on_top=True) 
         
         #open projecr from file
-        if event==get_locale("open_project"):
-            conf_filename = sg.popup_get_file(get_locale("file_open_dialog"),no_window=True,file_types=[("Simple UI configuration text files (*.ui)", "*.ui")])    
-
-            if not conf_filename==None:
-
-                #set_visibility_main_tabs(True)
-        
-                if len(conf_filename)>0:
-                    window.set_title(conf_filename)
-
-                    with open(conf_filename, encoding="utf-8") as json_file:
-                        configuration_json = json.load(json_file)
-                    
-                    init_variables()
-
-                    load_configuration_properties()    
-                    load_processes()
-                    load_screens()
-                    load_screen_lines()    
-                    set_visibility(jcurrent_screen)    
-                    init_configuration(window)
-
-                    update_conf(False)  
-
-                    if not current_uid==None:
-                        handlers_filename =  settings_global.get("handlers_filename"+current_uid)
-                        if not handlers_filename == None:
-                            window['conf_file_python'].update(handlers_filename)
-
-                        shandlers_list = settings_global.get("handlers_list"+current_uid)
-                        if not shandlers_list==None:
-                            try:
-                                if len(shandlers_list)>0:
-                                    jhandlers_list = json.loads(shandlers_list)
-                                    for elem in jhandlers_list:
-                                        data_pyfilenames.append({"key":elem['alias'],"filename":elem['filename']})
-
-                                    load_pyfiles()
-
-                            except Exception:
-                                print("Error reading settings...")        
+        if event==get_locale("open_project") :
+            open_project()
+            
         if event=='main_tabs':
             activeTab = window['main_tabs'].Get()
             if activeTab == 'tab_configuration_json':
@@ -2519,7 +2691,7 @@ if __name__ == "__main__":
                     configuration_json['ClientConfiguration']['Mediafile'].append({"MediafileKey":rvalues['mediafiles_key'],"MediafileData":base64file,"MediafileExt":ext})
                     load_mediafiles()
 
-                    update_conf(configuration_json)     
+                    update_conf()     
 
         if event == 'delete_pyfiles':
             if jcurrent_pyfiles!=None: 
@@ -2596,7 +2768,7 @@ if __name__ == "__main__":
                 configuration_json['ClientConfiguration']['PyTimerTask'].append({"PyTimerTaskKey":rvalues['timers_key'],"PyTimerTaskDef":rvalues['timers_def'],"PyTimerTaskPeriod":rvalues['timers_period'],"PyTimerTaskBuilIn":rvalues['timers_builin']})
                 load_timers()
 
-                update_conf(configuration_json)
+                update_conf()
 
         if event == 'delete_mainmenu':
             if jcurrent_mainmenu!=None: 
@@ -2690,7 +2862,9 @@ if __name__ == "__main__":
                 jcurrent_process['CVOperationName']= values['process_name']
             load_processes()
             window['ConfigurationTable'].update(values=data[1:][:])
-        
+            
+            update_conf()
+            
         if event=='p_not_show':
             if  jcurrent_process['type']=="Process":
                 jcurrent_process['hidden']= values['p_not_show']
@@ -2731,7 +2905,7 @@ if __name__ == "__main__":
                 update_conf()
         
         if event in ['screen_name','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_oninput','CVFrame_detector',
-                'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch']:
+                'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
             save_screen_values_event(event,values)  
             
      
@@ -2770,6 +2944,50 @@ if __name__ == "__main__":
             
             update_conf()
 
+        if event=='btn_paste_process':   
+
+            try:
+                new_process = json.loads(pyperclip.paste().replace("True","true").replace("False","false"))    
+                
+                
+                if new_process.get('type')=='Process':    
+      
+                    configuration_json['ClientConfiguration']['Processes'].append(new_process) 
+            
+                    load_processes(True)
+                    window['ConfigurationTable'].update(values=data[1:][:])
+                    window['ConfigurationTable'].update(select_rows =[(len(configuration_json['ClientConfiguration']['Processes'])-1)])
+
+                    jcurrent_process= configuration_json['ClientConfiguration']['Processes'][len(configuration_json['ClientConfiguration']['Processes'])-1] 
+                    load_screens(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:]) 
+                    
+                    load_screen_lines(False,True)
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
+
+                    update_conf()
+
+                elif new_process.get('type')=='CVOperation':    
+                
+                    configuration_json['ClientConfiguration']['Processes'].append(new_process) 
+            
+                    load_processes(True)
+                    window['ConfigurationTable'].update(values=data[1:][:])
+                    window['ConfigurationTable'].update(select_rows =[(len(configuration_json['ClientConfiguration']['Processes'])-1)])
+
+                    jcurrent_process= configuration_json['ClientConfiguration']['Processes'][len(configuration_json['ClientConfiguration']['Processes'])-1] 
+                    load_cvsteps(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:]) 
+                    
+                    
+                    update_conf()
+
+
+            except Exception as e:  # This is the correct syntax
+                                sg.popup('Wrong clipboard content',  e,   grab_anywhere=True)   
+
+
+
         if event=='btn_delete_process':    
         
             configuration_json['ClientConfiguration']['Processes'].remove(jcurrent_process) 
@@ -2788,7 +3006,7 @@ if __name__ == "__main__":
 
             update_conf()
 
-        if event=='btn_get_process_base':    
+        if event=='btn_get_process_base' or event=='btn_copy_process':    
         
             pyperclip.copy(json.dumps(jcurrent_process,ensure_ascii=False,indent=4, separators=(',', ': ')))
             #spam = pyperclip.paste()
@@ -2822,6 +3040,46 @@ if __name__ == "__main__":
 
                 update_conf()
 
+        if event=='btn_paste_screen': 
+
+            try:
+                new_screen = json.loads(pyperclip.paste().replace("True","true").replace("False","false"))    
+                
+                
+                if jcurrent_process.get('type')=='Process':    
+      
+                    jcurrent_process['Operations'].append(new_screen) 
+                    jcurrent_screen= jcurrent_process['Operations'][-1]
+                    set_visibility(jcurrent_screen) 
+                    load_screens(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:]) 
+                    window['ScreensTable'].update(select_rows =[(len(jcurrent_process['Operations'])-1)])
+
+                    load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
+
+                    update_conf()
+
+                elif jcurrent_process.get('type')=='CVOperation':    
+                
+                    jcurrent_process['CVFrames'].append(new_screen) 
+                    jcurrent_screen= jcurrent_process['CVFrames'][-1]
+                    set_visibility(jcurrent_screen) 
+                    
+                    load_cvsteps()
+                    window['ScreensTable'].update(values=data_screens[1:][:]) 
+
+                    update_conf()
+
+
+            except Exception as e:  # This is the correct syntax
+                                sg.popup('Wrong clipboard content',  e,   grab_anywhere=True)    
+
+     
+
+        if event=='btn_copy_screen': 
+            pyperclip.copy(json.dumps(jcurrent_screen,ensure_ascii=False,indent=4, separators=(',', ': ')).replace("true","True").replace("false","False"))
+            
 
         if event=='btn_delete_screen':    
             if jcurrent_process['type']=="CVOperation":

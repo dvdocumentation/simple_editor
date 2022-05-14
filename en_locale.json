@@ -30,6 +30,7 @@
     "signature":"Signature Input",
     "ocr":"Optical text recognition",
     "cart":"Cart",
+    "cards":"Cads",
     "tiles":"Tiles",
     "image_slider":"Image Slider",
     "menu_item":"Menu item",
@@ -51,6 +52,8 @@
     "type_of_element":"Type",
     "insert_from_clipboard":"Insert from clipboard",
    
+    "create_debug":"Create debug file",
+
     "multiline":"Multiline Text",
     "buttons_list":"Buttons List",
     "horizontal_buttons_list":"Horizontal Buttons List",
@@ -133,6 +136,7 @@
     "delete":"Delete",
     "save_layout":"Save",
     "copy_to_clipboard":"Copy to Clipboard",
+    "paste_from_clipboard":"Paste",
     "background_color":"Background Color",
     "text_size":"Text Size",
     "text_color":"Text Color",
@@ -143,6 +147,7 @@
     "number_decimal":"Number of decimal places",
     "recognition_template":"Recognition template",
     "save":"Save",
+    "create_or_open":"Welcome! Create or open a new SimpleUI project",
     "template":"Template",
     "add_process":"Add Process",
     "add_process_cv":"Add Process ActiveCV",
@@ -231,7 +236,8 @@
     "select_type":"Select element type...",
     "language":"Language",
     "restart_note":"Restart the app for the settings to take effect",
-    "sql_console":"SQL console"
+    "sql_console":"SQL console",
+    "dictionaries":"Dictionaries JSON"
 
 
 

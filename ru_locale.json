@@ -30,6 +30,7 @@
     "signature":"Подпись",
     "ocr":"Распознавание текста",
     "cart":"Корзина",
+    "cards":"Список карточек",
     "tiles":"Плитки",
     "image_slider":"Галерея слайдер",
     "menu_item":"Элмент меню",
@@ -47,6 +48,9 @@
     "chart":"Диаграмма",
     "spinner":"Выпадающий список",
     "table":"Таблица",
+    "paste_from_clipboard":"Вставить",
+
+    "create_debug":"Сгенерировать отладочный файл",
    
     "multiline":"Многострочный текст",
     "buttons_list":"Список кнопок вертикальный",
@@ -160,7 +164,7 @@
     "handler":"Обработчик",
     "period":"Период",
     "handler_name":"Имя обработчика",
-    
+    "create_or_open":"Добро пожаловать! Создайте новый или откройте проект SimpleUI",
     "name":"Имя",
     "show_in_toolbar":"Показывать в тулбаре",
     "enter_sql":"Введите SQL-запрос",
@@ -230,5 +234,6 @@
     "sql_console":"Консоль SQL запросов",
     "hide_top_bar":"Скрыть верхнюю панель",
     "type_of_element":"Тип",
-    "insert_from_clipboard":"Вставить из буфера"
+    "insert_from_clipboard":"Вставить из буфера",
+    "dictionaries":"Словари"
 }
