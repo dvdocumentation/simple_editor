@@ -178,9 +178,9 @@ class CodeUpdateThread(Thread):
                         configuration_json['ClientConfiguration']['PyFiles']=[]
                         for py_file in data_pyfilenames:
                             if len(py_file['filename'])>0:
-                                with open(py_file['filename'], 'r') as file:
+                                with open(py_file['filename'], 'r',encoding='utf-8') as file:
                                     data = file.read()
-                                base64file  = base64.b64encode(data.encode('utf-8')).decode('utf-8')   
+                                base64file  = base64.b64encode(data.encode('utf-8')).decode('utf-8')  
                                 configuration_json['ClientConfiguration']['PyFiles'].append({"PyFileKey":py_file['key'],"PyFileData":base64file})
                             
 
@@ -2724,7 +2724,7 @@ if __name__ == "__main__":
                     configuration_json['ClientConfiguration']['PyFiles']=[]
 
                 data=''
-                with open(rvalues['pyfiles_file'], 'r') as file:
+                with open(rvalues['pyfiles_file'], 'r',encoding='utf-8') as file:
                     data = file.read()
                 base64file  = base64.b64encode(data.encode('utf-8')).decode('utf-8')   
 
