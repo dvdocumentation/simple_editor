@@ -2685,7 +2685,7 @@ if __name__ == "__main__":
                     ext=''
                     with open(rvalues['mediafiles_file'], 'rb') as file:
                         data = file.read()
-                        ext= os.path.splitext(rvalues['mediafiles_file'])[1]
+                        ext= os.path.splitext(rvalues['mediafiles_file'])[1][1:]
                     base64file  = base64.b64encode(data).decode('utf-8')   
 
                     configuration_json['ClientConfiguration']['Mediafile'].append({"MediafileKey":rvalues['mediafiles_key'],"MediafileData":base64file,"MediafileExt":ext})
