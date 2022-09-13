@@ -127,7 +127,7 @@ captions_screen_elements = get_title_list(screen_elements)
 layout_elements = {"LinearLayout":get_locale("layout"),"TextView":get_locale("title"),"Button":get_locale("button"),
 "EditTextText":get_locale("string_input"),"EditTextNumeric":get_locale("numeric_input"),"EditTextPass":get_locale("password_input"),"EditTextAuto":get_locale("event_input"),"EditTextAutocomplete":get_locale("autocompete_input"),
 "ModernEditText":get_locale("modern_input"),"Picture":get_locale("picture"),"CheckBox":get_locale("checkbox"),"Gauge":get_locale("gauge"),"Chart":get_locale("chart"),"SpinnerLayout":get_locale("spinner"),"TableLayout":get_locale("table"),"CartLayout":get_locale("cart"),
-"MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button")}
+"MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button"),"html":get_locale("HTML"),"map":get_locale("map")}
 captions_layout_elements =get_title_list(layout_elements)
 
 detector_elements = {"Barcode":get_locale("barcodes"),"OCR":get_locale("ocr"),"Objects_Full":get_locale("ocr_and_barcodes"),"Objects_OCR":get_locale("objects_ocr"),
@@ -1083,7 +1083,7 @@ def set_visibility_recognition(rwindow,jcurrent_recognition,element_form=False):
             rwindow['colummn_recognition'].update(visible=True) 
 
             rwindow['settings_name'].update(jcurrent_recognition.get('name'),disabled=False)
-            rwindow['TypeRecognition'].update(jcurrent_recognition.get('TypeRecognition'),disabled=False)
+            rwindow['TypeRecognition'].update(get_synonym(recognition_elements,jcurrent_recognition.get('TypeRecognition')),disabled=False)
   
              
             
@@ -1101,10 +1101,13 @@ def set_visibility_recognition(rwindow,jcurrent_recognition,element_form=False):
                 
                 rwindow['ocr_frame'].update(visible=True)
 
-        try:
-            q =  b64=base64.b64decode(jcurrent_recognition.get('query').encode('utf-8')).decode('utf-8')
-        except:
-            q=jcurrent_recognition.get('query')
+        q=""
+        if jcurrent_recognition.get('query')!=None:
+            try:
+            
+                q =  base64.b64decode(jcurrent_recognition.get('query').encode('utf-8')).decode('utf-8')
+            except:
+                q=jcurrent_recognition.get('query')
 
         rwindow['query'].update(q,disabled=False)
         rwindow['values_list'].update(jcurrent_recognition.get('values_list'),disabled=False)
@@ -1156,14 +1159,24 @@ def save_recognition_values_event( jcurrent_recognition,event,values):
     if event==  'settings_name':  
                 jcurrent_recognition['name'] = values['settings_name'] 
     if event==  'TypeRecognition':  
-        jcurrent_recognition['TypeRecognition'] = values['TypeRecognition'] 
+        jcurrent_recognition['TypeRecognition'] = get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) 
 
-        if jcurrent_recognition['TypeRecognition'] ==get_synonym(recognition_elements,"Number"):
+        if get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) =="Number":
                 jcurrent_recognition['NumberRecognition'] =True
-        elif  jcurrent_recognition['TypeRecognition'] ==get_synonym(recognition_elements,"Date"):
+        else:
+                jcurrent_recognition['NumberRecognition'] =False    
+
+
+        if  get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) =="Date":
                 jcurrent_recognition['DateRecognition'] =True  
-        elif  jcurrent_recognition['TypeRecognition'] ==get_synonym(recognition_elements,"PlateNumber"):
+        else:
+            jcurrent_recognition['DateRecognition']=False
+
+
+        if  get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) =="PlateNumber":
                 jcurrent_recognition['PlateNumberRecognition'] =True  
+        else:        
+            jcurrent_recognition['PlateNumberRecognition'] =False 
 
 
     if event==  'query':  

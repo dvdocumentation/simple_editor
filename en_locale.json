@@ -51,6 +51,8 @@
     "hide_top_bar":"Hide top bar",
     "type_of_element":"Type",
     "insert_from_clipboard":"Insert from clipboard",
+    "html":"HTML field",
+    "map":"Vector map",
    
     "create_debug":"Create debug file",
 
