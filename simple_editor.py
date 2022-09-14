@@ -214,11 +214,15 @@ def update_conf(write_file=True):
                 for operation in process['Operations']:
                     if len(operation.get('PythonOnCreate',''))>0 or len(operation.get('PythonOnInput',''))>0 or len(operation.get('DefOnCreate',''))>0 or len(operation.get('DefOnInput',''))>0 :
                         isPython=True
+                        if len(operation.get('PythonOnCreate',''))>0 or len(operation.get('DefOnCreate',''))>0:
+                            operation['send_when_opened']=True
                     if len(operation.get('DefOnlineOnCreate',''))>0  :
                         operation['onlineOnStart']=True
+                        operation['send_when_opened']=True
                         isOnline=True
                     else:
-                        operation['onlineOnStart']=False    
+                        operation['onlineOnStart']=False  
+                          
                     if len(operation.get('DefOnlineOnInput',''))>0 :
                         operation['onlineOnInput']=True
                         isOnline=True    
@@ -1681,7 +1685,9 @@ def save_screen_values(values):
                     
             jcurrent_screen['onlineOnStart']=len(jcurrent_screen['DefOnlineOnCreate'])>0
             jcurrent_screen['onlineOnInput']=len(jcurrent_screen['DefOnlineOnInput'])>0
- 
+            jcurrent_screen['send_when_opened']=len(jcurrent_screen['DefOnlineOnCreate'])>0 or len(jcurrent_screen['DefOnCreate'])>0
+            
+
             load_screens()
             window['ScreensTable'].update(values=data_screens[1:][:])   
     elif  jcurrent_screen['type']=='CVFrame':
@@ -1742,13 +1748,15 @@ def save_screen_values_event(event,values):
             if event==  'screen_def_oncreate':  
                 jcurrent_screen['DefOnlineOnCreate'] = values['screen_def_oncreate'] 
                 jcurrent_screen['onlineOnStart']=len(jcurrent_screen['DefOnlineOnCreate'])>0 
+                jcurrent_screen['send_when_opened']=len(jcurrent_screen['DefOnlineOnCreate'])>0 or len(jcurrent_screen['DefOnCreate'])>0
+
             if event==  'screen_def_oninput':  
                 jcurrent_screen['DefOnlineOnInput'] = values['screen_def_oninput'] 
                 jcurrent_screen['onlineOnInput']=len(jcurrent_screen['DefOnlineOnInput'])>0 
            
             if event==  'screen_defpython_oncreate':  
                 jcurrent_screen['DefOnCreate'] = values['screen_defpython_oncreate'] 
-               
+                jcurrent_screen['send_when_opened']=len(jcurrent_screen['DefOnlineOnCreate'])>0 or len(jcurrent_screen['DefOnCreate'])>0 
             if event==  'screen_defpython_oninput':  
                 jcurrent_screen['DefOnInput'] = values['screen_defpython_oninput'] 
                
