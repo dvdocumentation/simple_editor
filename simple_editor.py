@@ -2965,6 +2965,7 @@ if __name__ == "__main__":
             
             update_conf()
 
+
         if event=='btn_paste_process':   
 
             try:
