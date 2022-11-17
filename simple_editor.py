@@ -221,7 +221,18 @@ def update_conf(write_file=True):
                         operation['send_when_opened']=True
                         isOnline=True
                     else:
-                        operation['onlineOnStart']=False  
+                        operation['onlineOnStart']=False 
+
+                    if len(operation.get('DefOnAfterCreate',''))>0  :
+                        isPython=True
+                        if len(operation.get('DefOnAfterCreate',''))>0:
+                            operation['send_after_opened']=True
+                    if len(operation.get('DefOnlineOnAfterCreate',''))>0  :
+                        operation['onlineOnAfterStart']=True
+                        operation['send_after_opened']=True
+                        isOnline=True
+                    else:
+                        operation['onlineOnAfterStart']=False      
                           
                     if len(operation.get('DefOnlineOnInput',''))>0 :
                         operation['onlineOnInput']=True
@@ -286,9 +297,11 @@ layout_common_screen = [[sg.Text(get_locale("screen_name"),size=35),sg.Input(do_
 
 layout_listener_online = [
                [sg.Text(get_locale("function_onstart_screen_online") ,size=50),sg.Input(key='screen_def_oncreate',enable_events=True,expand_x=True)],
+               [sg.Text(get_locale("function_onafterstart_screen_online") ,size=50),sg.Input(key='screen_def_onaftercreate',enable_events=True,expand_x=True)],
                [sg.Text(get_locale("function_oninput_screen_online") ,size=50),sg.Input(key='screen_def_oninput',enable_events=True,expand_x=True)],
                [sg.T("")],
                [sg.Text(get_locale("function_onstart_screen_python") ,size=50),sg.Input(key='screen_defpython_oncreate',enable_events=True,expand_x=True)],
+               [sg.Text(get_locale("function_onafterstart_screen_python") ,size=50),sg.Input(key='screen_defpython_onaftercreate',enable_events=True,expand_x=True)],
                [sg.Text(get_locale("function_oninput_screen_python") ,size=50),sg.Input(key='screen_defpython_oninput',enable_events=True,expand_x=True)]
 
               ]  
@@ -423,9 +436,11 @@ def set_visibility(jcurrent_screen):
             window['cb_screen_keyboard'].update(jcurrent_screen.get('handleKeyUp'))
 
             window['screen_def_oncreate'].update(jcurrent_screen.get('DefOnlineOnCreate',''))
+            window['screen_def_onaftercreate'].update(jcurrent_screen.get('DefOnlineOnAfterCreate',''))
             window['screen_def_oninput'].update(jcurrent_screen.get('DefOnlineOnInput',''))
 
             window['screen_defpython_oncreate'].update(jcurrent_screen.get('DefOnCreate',''))
+            window['screen_defpython_onaftercreate'].update(jcurrent_screen.get('DefOnAfterCreate',''))
             window['screen_defpython_oninput'].update(jcurrent_screen.get('DefOnInput',''))
 
 
@@ -693,7 +708,11 @@ def show_edit(type,editwindow,jelement,is_layout=False):
 
         layout = [[sg.Text(get_locale('type_of_element'),size=35),sg.Combo(captions_screen_elements,key='type',enable_events=True,default_value= default_value)],
         #[sg.Text(get_synonym(screen_elements ,'КОНТЕЙНЕР')), sg.Text('', key='_OUTPUT_')],
-        [sg.Text(get_locale('orientation'),size=35),sg.Combo(captions_orientation_elements,key='orientation',default_value= get_synonym(orientation_elements,jelement.get('orientation','')))],
+        [sg.Text(get_locale('variable'),size=35),sg.Input(do_not_clear=True, key='variable',default_text=jelement.get('Variable',''),enable_events=True)],
+        [sg.Text(get_locale('background_color'),size=35),sg.Input(do_not_clear=True, key='background_color',default_text=jelement.get('BackgroundColor',''),enable_events=True)],
+        [sg.Text(get_locale('stroke_width'),size=35),sg.Input(do_not_clear=True, key='stroke_width',default_text=jelement.get('StrokeWidth',''),enable_events=True)],
+        [sg.Text(get_locale('padding'),size=35),sg.Input(do_not_clear=True, key='padding',default_text=jelement.get('Padding',''),enable_events=True)],
+         [sg.Text(get_locale('orientation'),size=35),sg.Combo(captions_orientation_elements,key='orientation',default_value= get_synonym(orientation_elements,jelement.get('orientation','')))],
         [show_scale('height',jelement,get_locale('height') )],
         [show_scale('width',jelement,get_locale('width') )],
         [sg.Text(get_locale('weight'),size=35),sg.Input(key='weight',default_text= jelement.get('weight',0))],
@@ -802,7 +821,8 @@ def set_visibility_style(swindow,jcurrent_style,element_form=False,islayout=Fals
     swindow['weight'].update('0')
     swindow['height_value'].update('',visible=False)
     swindow['width_value'].update('',visible=False)
-
+    swindow['row'].update('')
+    swindow['use_as_class'].update(False)
 
     if not islayout:
         swindow['BackgroundColor'].update('')
@@ -813,6 +833,7 @@ def set_visibility_style(swindow,jcurrent_style,element_form=False,islayout=Fals
         swindow['gravity_horizontal'].update('')
         swindow['drawable'].update('')
         swindow['NumberPrecision'].update('')
+        
     
 
 
@@ -823,6 +844,10 @@ def set_visibility_style(swindow,jcurrent_style,element_form=False,islayout=Fals
         swindow['height'].update(jcurrent_style.get('height'),disabled=False)
         swindow['width'].update(jcurrent_style.get('width'),disabled=False)
         swindow['weight'].update(jcurrent_style.get('weight'),disabled=False)
+        
+        swindow['row'].update(jcurrent_style.get('row'),disabled=False)
+        swindow['use_as_class'].update(jcurrent_style.get('use_as_class'),disabled=False)
+
         if jcurrent_style.get('height')=='manual':
             swindow['height_value'].update(jcurrent_style.get('height_value'),visible=True)
         if jcurrent_style.get('width')=='manual':
@@ -882,7 +907,7 @@ def update_styles(window,SetCurrent=False):
 
     return  data_styles         
 
-def save_style_values_event( jcurrent_style,event,values,write_conf=False):
+def save_style_values_event( jcurrent_style,event,values,write_conf=False,isstyle=False):
 
     if event==  'value':  
                 jcurrent_style['Value'] = values['value'] 
@@ -900,7 +925,7 @@ def save_style_values_event( jcurrent_style,event,values,write_conf=False):
                     #if isinstance(values.get('height_value',''), int)   
 
                     if get_key(scale_elements,values.get('height',''))=='manual':
-                        if len(values.get('height_value',''))>0:
+                        if len(str(values.get('height_value','')))>0:
                             jcurrent_style['height']=int(values['height_value'])
                         else:
                             jcurrent_style['height']=0;    
@@ -911,7 +936,7 @@ def save_style_values_event( jcurrent_style,event,values,write_conf=False):
     if event==  'width':  
                 if 'width' in values and write_conf:    
                     if get_key(scale_elements,values.get('width',''))=='manual' :
-                        if len(values.get('width_value',''))>0:
+                        if len(str(values.get('width_value','')))>0:
                            jcurrent_style['width']=int(values['width_value'])
                         else: 
                            jcurrent_style['width']=0  
@@ -921,9 +946,25 @@ def save_style_values_event( jcurrent_style,event,values,write_conf=False):
                 #jcurrent_style['width'] = get_key(scale_elements,values['width']) 
     if event==  'weight':  
                 jcurrent_style['weight'] = values['weight'] 
+    if isstyle:
+        if event==  'row':  
+                    jcurrent_style['row'] = values['row'] 
+
+        if event==  'use_as_class':  
+                    jcurrent_style['use_as_class'] = values['use_as_class']                        
                 
+    if event==  'background_color':  
+                jcurrent_style['BackgroundColor'] = values['background_color'] 
+
+    if event==  'stroke_width':  
+                jcurrent_style['StrokeWidth'] = values['stroke_width']
+
+    if event==  'padding':  
+                jcurrent_style['Padding'] = values['padding']
+
     if event==  'BackgroundColor':  
-                jcurrent_style['BackgroundColor'] = values['BackgroundColor'] 
+                jcurrent_style['BackgroundColor'] = values['BackgroundColor']                        
+
     if event==  'TextSize':  
                 jcurrent_style['TextSize'] = values['TextSize'] 
 
@@ -985,6 +1026,7 @@ def window_styles():
                     select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                     enable_click_events=True),
                     sg.Column([[sg.Text(get_locale('name')),sg.Input(do_not_clear=True, key='style_name',enable_events=True)],
+                    [sg.Checkbox(get_locale('use_as_class') ,key='use_as_class',enable_events=True)],
                     
                     show_scale_invisible('height',jcurrent_style,get_locale('height')),
                     show_scale_invisible('width',jcurrent_style,get_locale('width')),
@@ -996,7 +1038,9 @@ def window_styles():
                     show_checkbox('TextItalic',jcurrent_style,get_locale('italic')),
                     show_horizontal_gravity('gravity_horizontal',jcurrent_style,get_locale('gravity_horizontal')),
                     show_icon('drawable',jcurrent_style,get_locale('icon') ),
-                    show_input('NumberPrecision',jcurrent_style,get_locale('number_decimal') ) 
+                    show_input('NumberPrecision',jcurrent_style,get_locale('number_decimal') ), 
+                    [sg.Text(get_locale('row'),size=35)],
+                    [sg.Multiline(key='row',enable_events=True, expand_x=True, expand_y=True)] 
                     ])
                     
                     ]
@@ -1030,8 +1074,8 @@ def window_styles():
 
             set_visibility_style(window_styles,jcurrent_style)
             update_conf()
-        if s_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','drawable','NumberPrecision','height_value','width_value']:
-            save_style_values_event(jcurrent_style,s_event,s_values)
+        if s_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','drawable','NumberPrecision','height_value','width_value','row','use_as_class']:
+            save_style_values_event(jcurrent_style,s_event,s_values,False,True)
             set_visibility_style(window_styles,jcurrent_style)
             update_conf()
         if s_event == 'StylesTable':
@@ -1334,6 +1378,16 @@ def save_layout_line(elements,e_values,is_layout):
                     elements['Variable']=e_values['variable']
     if  'value' in e_values:   
                     elements['Value']=e_values['value']
+    if  'background_color' in e_values:   
+                    elements['BackgroundColor']=e_values['background_color']
+
+    if  'stroke_width' in e_values:   
+                    elements['StrokeWidth']=e_values['stroke_width']
+
+    if  'padding' in e_values:   
+                    elements['Padding']=e_values['padding']
+
+
     if 'orientation' in e_values:
                     elements['orientation']=get_key(orientation_elements,e_values['orientation'])
     if 'weight' in e_values:
@@ -1505,7 +1559,7 @@ def edit_element_form(row,elements,is_layout=False):
                     elements['type']='Vision'  
 
 
-            if e_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','drawable','NumberPrecision','height_value','width_value','value','variable']:
+            if e_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','drawable','NumberPrecision','height_value','width_value','value','variable','background_color','stroke_width','padding']:
                 save_style_values_event(elements,e_event,e_values,True)
                 #set_visibility_style(editwindow,elements,True,elements.get('type')=='LinearLayout')
             if e_event=='recognition_type':
@@ -1534,9 +1588,18 @@ def edit_element_form(row,elements,is_layout=False):
                     if st['name']==e_values['style_name']:
                         jstyle=st
                         break
+                css=False    
+                if "use_as_class" in jstyle:
+                  if jstyle.get("use_as_class")==True:
+                    css=True
                 
-                for key in jstyle.keys():
-                    save_style_values_event(elements,key,jstyle,True)
+                if css:
+                    elements['style_name']=e_values['style_name']
+                    elements['style_class']=e_values['style_name']
+                
+                else:              
+                    for key in jstyle.keys():
+                        save_style_values_event(elements,key,jstyle,True)
 
                 editwindow =show_edit(get_key(screen_elements,e_values['type']),editwindow,elements,is_layout)
 
@@ -1677,15 +1740,19 @@ def save_screen_values(values):
             jcurrent_screen['handleKeyUp'] = values['cb_screen_keyboard'] 
 
             jcurrent_screen['DefOnlineOnCreate'] = values['screen_def_oncreate']  
+            jcurrent_screen['DefOnlineOnAfterCreate'] = values['screen_def_onaftercreate']  
             jcurrent_screen['DefOnlineOnInput'] = values['screen_def_oninput'] 
 
             jcurrent_screen['DefOnCreate'] = values['screen_defpython_oncreate']  
+            jcurrent_screen['DefOnAfterCreate'] = values['screen_defpython_onaftercreate']  
             jcurrent_screen['DefOnInput'] = values['screen_defpython_oninput']  
 
                     
             jcurrent_screen['onlineOnStart']=len(jcurrent_screen['DefOnlineOnCreate'])>0
+            jcurrent_screen['onlineOnAfterStart']=len(jcurrent_screen['DefOnlineOnAfterCreate'])>0
             jcurrent_screen['onlineOnInput']=len(jcurrent_screen['DefOnlineOnInput'])>0
             jcurrent_screen['send_when_opened']=len(jcurrent_screen.get('DefOnlineOnCreate',''))>0 or len(jcurrent_screen.get('DefOnCreate',''))>0
+            jcurrent_screen['send_after_opened']=len(jcurrent_screen.get('DefOnlineOnAfterCreate',''))>0 or len(jcurrent_screen.get('DefOnAfterCreate',''))>0
             
 
             load_screens()
@@ -1749,6 +1816,10 @@ def save_screen_values_event(event,values):
                 jcurrent_screen['DefOnlineOnCreate'] = values['screen_def_oncreate'] 
                 jcurrent_screen['onlineOnStart']=len(jcurrent_screen['DefOnlineOnCreate'])>0 
                 jcurrent_screen['send_when_opened']=len(jcurrent_screen.get('DefOnlineOnCreate',''))>0 or len(jcurrent_screen.get('DefOnCreate',''))>0
+            if event==  'screen_def_onaftercreate':  
+                jcurrent_screen['DefOnlineOnAfterCreate'] = values['screen_def_onaftercreate'] 
+                jcurrent_screen['onlineOnAfterStart']=len(jcurrent_screen['DefOnlineOnAfterCreate'])>0 
+                jcurrent_screen['send_after_opened']=len(jcurrent_screen.get('DefOnlineOnAfterCreate',''))>0 or len(jcurrent_screen.get('DefOnAfterCreate',''))>0    
 
             if event==  'screen_def_oninput':  
                 jcurrent_screen['DefOnlineOnInput'] = values['screen_def_oninput'] 
@@ -1756,7 +1827,12 @@ def save_screen_values_event(event,values):
            
             if event==  'screen_defpython_oncreate':  
                 jcurrent_screen['DefOnCreate'] = values['screen_defpython_oncreate'] 
-                jcurrent_screen['send_when_opened']=len(jcurrent_screen.get('DefOnlineOnCreate',''))>0 or len(jcurrent_screen.get('DefOnCreate',''))>0 
+                jcurrent_screen['send_when_opened']=len(jcurrent_screen.get('DefOnlineOnCreate',''))>0 or len(jcurrent_screen.get('DefOnCreate',''))>0
+
+            if event==  'screen_defpython_onaftercreate':  
+                jcurrent_screen['DefOnAfterCreate'] = values['screen_defpython_onaftercreate'] 
+                jcurrent_screen['send_after_opened']=len(jcurrent_screen.get('DefOnlineOnAfterCreate',''))>0 or len(jcurrent_screen.get('DefOnAfterCreate',''))>0    
+
             if event==  'screen_defpython_oninput':  
                 jcurrent_screen['DefOnInput'] = values['screen_defpython_oninput'] 
                
@@ -2154,6 +2230,7 @@ def create_project():
                                 "hideBottomBarScreen": False,
                                 "onlineOnStart": False,
                                 "send_when_opened": False,
+                                "send_after_opened": False,
                                 "onlineOnInput": False,
                                 "DefOnlineOnCreate": "",
                                 "DefOnlineOnInput": "",
@@ -2666,7 +2743,7 @@ if __name__ == "__main__":
 
         if event in ['conf_name','conf_version','conf_description','conf_backservice','conf_backservice_exit','conf_nosql_name','conf_intent','conf_intent_var','conf_url_face_recognition','conf_keyboard_menu',
         'confoptions_vendor','confoptions_vendor_url','confoptions_vendor_login','confoptions_vendor_password','confoptions_vendor_auth','conf_split_mode','confoptions_client_code','confoptions_handlers_url','confoptions_handlers_login','confoptions_handlers_password','confoptions_handlers_auth',
-        'Launch','launch_process','launch_variable','def_service_python','def_service_online','confoptions_dictionaries',] :
+        'Launch','launch_process','launch_variable','def_service_python','def_service_online','confoptions_dictionaries'] :
         
             write_cofiguration_property(event,values[event],values)
 
@@ -2925,7 +3002,7 @@ if __name__ == "__main__":
 
                 update_conf()
         
-        if event in ['screen_name','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_oninput','CVFrame_detector',
+        if event in ['screen_name','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_onaftercreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_onaftercreate','screen_defpython_oninput','CVFrame_detector',
                 'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
             save_screen_values_event(event,values)  
             
