@@ -243,14 +243,27 @@
     "language":"Language",
     "restart_note":"Restart the app for the settings to take effect",
     "sql_console":"SQL console",
-    "dictionaries":"Dictionaries JSON"
+    "dictionaries":"Dictionaries JSON",
 
-
-
+    "event":"Event",
+    "new_screen_handlers":"Handlers (2.0)",
+    "add_screen_handler":"Add",
+    "delete_screen_handler":"Delete",
     
-    
-
-
+    "action":"Action",
+    "handlertype":"Type",
+    "method":"Method",
+    "handlersmethod":"Method",
+    "edit_post_execute":"Edit postExecute",
+    "menu_web_template":"Menu template (web)",
+    "row":"CSS",
+    "Tabs":"Tabs",
+    "Tab":"Tab",
+    "tabs":"Tabs",
+    "tab":"Tab",
+    "gravity_vertical":"Vertical gravity",
+    "top":"Top",
+    "bottom":"Bottom"
 
 
 

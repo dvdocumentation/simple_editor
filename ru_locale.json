@@ -241,5 +241,29 @@
     "hide_top_bar":"Скрыть верхнюю панель",
     "type_of_element":"Тип",
     "insert_from_clipboard":"Вставить из буфера",
-    "dictionaries":"Словари"
+    "dictionaries":"Словари",
+
+    "new_screen_handlers":"Обработчики (2.0)",
+    "add_screen_handler":"Добавить",
+    "delete_screen_handler":"Удалить",
+    
+    "action":"Действие",
+    "handlertype":"Тип обработчика",
+    "method":"Метод",
+    "handlersmethod":"Метод",
+    "edit_post_execute":"Создать postExecute",
+    "menu_web_template":"Шаблон меню (web)",
+    "row":"CSS",
+    "event":"Событие",
+    "Tabs":"Закладки",
+    "Tab":"Закладка",
+    "tabs":"Закладки",
+    "tab":"Закладка",
+    "gravity_vertical":"Горизонтальное положение",
+    "top":"Верх",
+    "bottom":"Низ"
+
+
+
+
 }

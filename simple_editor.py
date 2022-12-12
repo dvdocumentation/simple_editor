@@ -112,19 +112,39 @@ columns = ['','','']
 
 code_files={}
 
+columns_handlers = ['','','','']
+data_screen_handlers = []
+data_screen_handlers.append(columns_handlers)
+
 #screen list elemrnts
 data_screen_lines.append(columns)
 
 headings_screen_lines = [get_locale("screen_element"),get_locale("value"),get_locale("variable")]
+headings_screen_handlers = [get_locale("event"),get_locale("action"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
+
+action_elements = {"run":get_locale("run"),"runasync":get_locale("runasync")}
+captions_action_elements = get_title_list(action_elements)
+
+event_elements = {"onStart":get_locale("onStart"),"onPostStart":get_locale("onPostStart"),"onInput":get_locale("onInput")}
+captions_event_elements = get_title_list(event_elements)
+
+event_elements_cv = {"OnCreate":get_locale("OnCreate"),"OnObjectDetected":get_locale("OnObjectDetected"),"OnTouch":get_locale("OnTouch"),"OnInput":get_locale("OnInput")}
+captions_event_elements_cv = get_title_list(event_elements_cv)
+
+
+handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"httpworker":get_locale("httpworker"),"worker":get_locale("worker")}
+captions_handler_elements = get_title_list(handler_elements)
+
 
 all_screen_lines_list = []
+all_screen_handlers_list = []
 
 screen_elements = {"LinearLayout":get_locale("layout"),"barcode":get_locale("barcode"),"HorizontalGallery":get_locale("horizontal_gallery"),
 "voice":get_locale("voice_input"),"photo":get_locale("camera_capture"),"photoGallery":get_locale("gallery"),"voice":get_locale("tts"),"signature":get_locale("signature"),
-"Vision":get_locale("ocr"),"Cart":get_locale("cart"),"Tiles":get_locale("tiles"),"ImageSlider":get_locale("image_slider"),"MenuItem":get_locale("menu_item")}
+"Vision":get_locale("ocr"),"Cart":get_locale("cart"),"Tiles":get_locale("tiles"),"ImageSlider":get_locale("image_slider"),"MenuItem":get_locale("menu_item"),"Tabs":get_locale("Tabs"),"Tab":get_locale("Tab")}
 captions_screen_elements = get_title_list(screen_elements)
 
-layout_elements = {"LinearLayout":get_locale("layout"),"TextView":get_locale("title"),"Button":get_locale("button"),
+layout_elements = {"LinearLayout":get_locale("layout"),"Tabs":get_locale("Tabs"),"Tab":get_locale("Tab"),"TextView":get_locale("title"),"Button":get_locale("button"),
 "EditTextText":get_locale("string_input"),"EditTextNumeric":get_locale("numeric_input"),"EditTextPass":get_locale("password_input"),"EditTextAuto":get_locale("event_input"),"EditTextAutocomplete":get_locale("autocompete_input"),
 "ModernEditText":get_locale("modern_input"),"Picture":get_locale("picture"),"CheckBox":get_locale("checkbox"),"Gauge":get_locale("gauge"),"Chart":get_locale("chart"),"SpinnerLayout":get_locale("spinner"),"TableLayout":get_locale("table"),"CartLayout":get_locale("cart"),
 "MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button"),"html":get_locale("HTML"),"map":get_locale("map")}
@@ -159,6 +179,9 @@ captions_recognition_elements = get_title_list(recognition_elements)
 
 gravity_elements = {"left":get_locale("left"),"right":get_locale("right"),"center":get_locale("center")}
 captions_gravity_elements = get_title_list(gravity_elements)
+
+vertical_gravity_elements = {"top":get_locale("top"),"bottom":get_locale("bottom"),"center":get_locale("center")}
+captions_vertical_gravity_elements = get_title_list(vertical_gravity_elements)
 
 #updating python handlers code in SimpleUI configuration in thread
 class CodeUpdateThread(Thread):
@@ -306,6 +329,41 @@ layout_listener_online = [
 
               ]  
 
+layout_new_handlers = [
+    [sg.Button(get_locale("add_screen_handler"),key='btn_add_screen_handler'),sg.Button(get_locale("delete_screen_handler"),key='btn_delete_screen_handler')],
+    [
+               sg.Table(values=data_screen_handlers, headings=headings_screen_handlers,auto_size_columns=True,
+                   
+                    display_row_numbers=False,
+                    num_rows=10,
+                    
+                    key='ScreenHandlersTable',
+                    selected_row_colors='red on yellow',
+                                      
+                    select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                    bind_return_key =True,
+                    
+                    expand_x=True,expand_y=True) ]
+
+              ] 
+
+layout_handler_element =[
+     [sg.Text(get_locale("event")),sg.Combo(captions_event_elements,key='handlers_event',enable_events=True)],
+    [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True)],
+    [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True)],
+    [sg.Text(get_locale("handlersmetod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True)],
+    [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True)]
+     
+    ]    
+
+layout_handler_element_cv =[
+     [sg.Text(get_locale("event")),sg.Combo(captions_event_elements_cv,key='handlers_event',enable_events=True)],
+    [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True)],
+    [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True)],
+    [sg.Text(get_locale("handlersmetod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True)],
+    [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True)]
+     
+    ]           
 
 data_recognition=[]
 layout_common_cv =[
@@ -336,7 +394,23 @@ cv_layout_listener_online = [
                [sg.Text(get_locale("function_action_buttons_cv_python"),size=50),sg.Input(key='CVFrameDefAction',enable_events=True,expand_x=True)]
                             
               ]   
-
+cv_layout_new_handlers = [
+                   [sg.Button(get_locale("add_screen_handler"),key='btn_add_screen_handler_cv'),sg.Button(get_locale("delete_screen_handler"),key='btn_delete_screen_handler_cv')],
+    [
+               sg.Table(values=data_screen_handlers, headings=headings_screen_handlers,auto_size_columns=True,
+                   
+                    display_row_numbers=False,
+                    num_rows=10,
+                    
+                    key='ScreenHandlersTableCV',
+                    selected_row_colors='red on yellow',
+                                      
+                    select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                    bind_return_key =True,
+                    
+                    expand_x=True,expand_y=True) ]
+                            
+              ]
 
 layout_lines = [[sg.Button(get_locale("add_screen_element"),key='btn_add_screen_line'),sg.Button(get_locale("delete_screen_element"),key='btn_delete_screen_line'),sg.Button(get_locale("insert_from_clipboard"),key='btn_insert_from_clipboard_screen_line')],[
 
@@ -361,11 +435,11 @@ layout_lines = [[sg.Button(get_locale("add_screen_element"),key='btn_add_screen_
 
 
 tab_layout_screen = [
-    [sg.TabGroup([[sg.Tab(get_locale("common") ,layout_common_screen),sg.Tab(get_locale("structure") ,layout_lines),sg.Tab(get_locale("screen_handlers"),layout_listener_online)]],expand_x=True,expand_y=True) ]
+    [sg.TabGroup([[sg.Tab(get_locale("common") ,layout_common_screen),sg.Tab(get_locale("structure") ,layout_lines),sg.Tab(get_locale("screen_handlers"),layout_listener_online),sg.Tab(get_locale("new_screen_handlers"),layout_new_handlers)]],expand_x=True,expand_y=True) ]
                ]
 
 tab_layout_CVFrame = [
-    [sg.TabGroup([[sg.Tab(get_locale("common_cv") ,layout_common_cv),sg.Tab(get_locale("handlers_cv") ,cv_layout_listener_online)]],expand_x=True,expand_y=True) ] 
+    [sg.TabGroup([[sg.Tab(get_locale("common_cv") ,layout_common_cv),sg.Tab(get_locale("handlers_cv") ,cv_layout_listener_online),sg.Tab(get_locale("new_handlers_cv") ,cv_layout_new_handlers)]],expand_x=True,expand_y=True) ] 
                ]               
 
 
@@ -541,8 +615,29 @@ def load_screen_lines(is_CV=False,SetCurrent=False):
         if len(all_screen_lines_list)>0 and (jcurrent_screen_line==None or SetCurrent):
             jcurrent_screen_line=all_screen_lines_list[0]                 
 
+def load_screen_handlers():
+    
 
-     
+    data_screen_handlers.clear()
+    columns = ['','','','','']
+    data_screen_handlers.append([columns])
+    all_screen_handlers_list .clear()
+
+   
+    if jcurrent_screen!=None:
+        if 'Handlers' in jcurrent_screen:
+            for elem in jcurrent_screen['Handlers']:
+                all_screen_handlers_list.append(elem)
+                method =''
+                postExecute=''
+                if 'method' in elem:
+                    method = elem['method']
+                if 'postExecute' in elem:
+                    postExecute =  elem['postExecute']   
+                row=[get_synonym(screen_elements,elem.get('event','')),get_synonym(screen_elements,elem.get('action','')),get_synonym(screen_elements,elem.get('type','')),method,postExecute]
+                data_screen_handlers.append(row)  
+
+        
    
 
 data = []
@@ -628,6 +723,16 @@ def show_horizontal_gravity(f,jelement,caption):
             layout =  [sg.Text(caption,size=35),sg.Combo(captions_gravity_elements,key=f,default_value= get_synonym(gravity_elements,'center'),enable_events=True)]     
     return layout
 
+def show_vertical_gravity(f,jelement,caption):
+    if jelement==None:
+        layout =  [sg.Text(caption,size=35),sg.Combo(captions_vertical_gravity_elements,key=f,default_value= get_synonym(vertical_gravity_elements,'center'),enable_events=True)] 
+    else:
+        if f in jelement:
+            layout =  [sg.Text(caption,size=35),sg.Combo(captions_vertical_gravity_elements,key=f,default_value= get_synonym(vertical_gravity_elements,jelement[f]),enable_events=True)] 
+        else:
+            layout =  [sg.Text(caption,size=35),sg.Combo(captions_vertical_gravity_elements,key=f,default_value= get_synonym(vertical_gravity_elements,'center'),enable_events=True)]     
+    return layout    
+
 def show_icon(f,jelement,caption):
     if jelement==None:
         layout =  [sg.Text(caption,size=35),sg.Combo(icon_elements,key=f,enable_events=True)] 
@@ -689,7 +794,7 @@ def get_data_container_lines(jelement):
 
 #Edit screen line window
 def show_edit(type,editwindow,jelement,is_layout=False):
-    if type=='LinearLayout'  :
+    if type=='LinearLayout' or type=="Tabs" or type=="Tab" :
 
         if not 'Elements' in jelement:
             jelement['Elements']=[]
@@ -715,6 +820,8 @@ def show_edit(type,editwindow,jelement,is_layout=False):
          [sg.Text(get_locale('orientation'),size=35),sg.Combo(captions_orientation_elements,key='orientation',default_value= get_synonym(orientation_elements,jelement.get('orientation','')))],
         [show_scale('height',jelement,get_locale('height') )],
         [show_scale('width',jelement,get_locale('width') )],
+        show_horizontal_gravity('gravity_horizontal',jelement,get_locale('gravity_horizontal') ),
+        show_vertical_gravity('gravity_vertical',jelement,get_locale('gravity_vertical') ),
         [sg.Text(get_locale('weight'),size=35),sg.Input(key='weight',default_text= jelement.get('weight',0))],
         [sg.Button(get_locale('add_element'),key='btn_add_layout_line'),sg.Button(get_locale('copy_element'),key='btn_copy_layout_line'),sg.Button(get_locale('up'),key='btn_up_layout_line'),sg.Button(get_locale('down'),key='btn_down_layout_line'),sg.Button(get_locale('delete'),key='btn_delete_layout_line'),sg.Button(get_locale('insert_from_clipboard'),key='btn_insert_from_clipboard_layout_line')],
         [sg.Table(values=data_container_lines[1:][:], headings=headings_container,
@@ -804,6 +911,10 @@ def show_edit(type,editwindow,jelement,is_layout=False):
            
 
     return editwindow  
+
+
+
+
 
 #Style templae funtions
 def set_visibility_style(swindow,jcurrent_style,element_form=False,islayout=False):
@@ -958,7 +1069,7 @@ def save_style_values_event( jcurrent_style,event,values,write_conf=False,isstyl
 
     if event==  'stroke_width':  
                 jcurrent_style['StrokeWidth'] = values['stroke_width']
-
+    
     if event==  'padding':  
                 jcurrent_style['Padding'] = values['padding']
 
@@ -976,6 +1087,10 @@ def save_style_values_event( jcurrent_style,event,values,write_conf=False,isstyl
                 jcurrent_style['TextItalic'] = values['TextItalic'] 
     if event==  'gravity_horizontal':  
                 jcurrent_style['gravity_horizontal'] = get_key(gravity_elements,values['gravity_horizontal'] )
+
+    if event==  'gravity_vertical':  
+                jcurrent_style['gravity_vertical'] = get_key(vertical_gravity_elements,values['gravity_vertical'] )
+
     if event==  'drawable':  
                 jcurrent_style['drawable'] = values['drawable'] 
     if event==  'NumberPrecision':  
@@ -1040,7 +1155,7 @@ def window_styles():
                     show_icon('drawable',jcurrent_style,get_locale('icon') ),
                     show_input('NumberPrecision',jcurrent_style,get_locale('number_decimal') ), 
                     [sg.Text(get_locale('row'),size=35)],
-                    [sg.Multiline(key='row',enable_events=True, expand_x=True, expand_y=True)] 
+                    [sg.Multiline(key='row',enable_events=True, expand_x=True, expand_y=True,size=(150,20))] 
                     ])
                     
                     ]
@@ -1539,7 +1654,7 @@ def edit_element_form(row,elements,is_layout=False):
                editwindow =show_edit(get_key(screen_elements,e_values['type']),editwindow,elements,is_layout)    
             if e_event == 'type':
                 
-                if get_key(screen_elements,e_values['type'])=='LinearLayout':
+                if get_key(screen_elements,e_values['type'])=='LinearLayout' or  get_key(screen_elements,e_values['type'])=='Tabs' or  get_key(screen_elements,e_values['type'])=='Tab':
                     if not 'weight' in elements:
                         elements['weight']=0
                     if not 'height' in elements:
@@ -1548,20 +1663,25 @@ def edit_element_form(row,elements,is_layout=False):
                         elements['width']='wrap_content'
                     if not 'orientation' in elements:
                         elements['orientation']='vertical'    
-
+                else:
+                    elements['type']=get_key(layout_elements,e_values['type']) 
                 #    is_layout=True
                 #else:        
                 #    is_layout=False
 
                 editwindow =show_edit(get_key(screen_elements,e_values['type']),editwindow,elements,is_layout)
+                 
+                if not(get_key(screen_elements,e_values['type'])=='LinearLayout' or  get_key(screen_elements,e_values['type'])=='Tabs' or  get_key(screen_elements,e_values['type'])=='Tab'): 
+                    elements['type']=get_key(layout_elements,e_values['type'])
 
                 if get_key(screen_elements,e_values['type'])=='Vision':
                     elements['type']='Vision'  
 
-
-            if e_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','drawable','NumberPrecision','height_value','width_value','value','variable','background_color','stroke_width','padding']:
+                update_conf()
+            if e_event in ['height','width','weight','BackgroundColor','TextSize','TextColor','TextBold','TextItalic','gravity_horizontal','gravity_vertical','drawable','NumberPrecision','height_value','width_value','value','variable','background_color','stroke_width','padding']:
                 save_style_values_event(elements,e_event,e_values,True)
                 #set_visibility_style(editwindow,elements,True,elements.get('type')=='LinearLayout')
+                update_conf()
             if e_event=='recognition_type':
                 #Временное решение
                 if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
@@ -1580,6 +1700,7 @@ def edit_element_form(row,elements,is_layout=False):
                     data_container_lines = get_data_container_lines(elements)
                     editwindow['LayoutTable'].update(values=data_container_lines[1:][:])
 
+                    update_conf()    
             if  e_event == 'style_name':
                 elements['style_name']=e_values['style_name']
 
@@ -1609,6 +1730,94 @@ def edit_element_form(row,elements,is_layout=False):
         window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])     
 
         editwindow.close()  
+
+
+def edit_handler_form(row,elements,isCV=False):                   
+        global window
+
+        if isCV:
+            captions_event=captions_event_elements_cv
+        else:
+            captions_event=captions_event_elements
+        
+       
+        if not  row ==None:
+            
+            editwindowh = sg.Window(get_locale("handler"),icon='ic_32.ico',modal=True).Layout([
+    [sg.Text(get_locale("event")),sg.Combo(captions_event,key='handlers_event',enable_events=True,default_value=get_synonym(event_elements,elements.get('event','')))],            
+    [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,default_value=get_synonym(action_elements,elements.get('action','')))],
+    [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,default_value=get_synonym(handler_elements,elements.get('type','')))],
+    [sg.Text(get_locale("handlersmethod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,default_text=elements.get('method',''))],
+    [sg.Button(get_locale('edit_post_execute'),key='btn_pe')],
+    [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,default_text=elements.get('postExecute',''))],
+    [sg.Button(get_locale('save'),key='btn_save')]
+     
+    ]              )
+    
+        else:
+            editwindowh = sg.Window(get_locale("handler"),icon='ic_32.ico',modal=True).Layout([
+            [sg.Text(get_locale("event")),sg.Combo(captions_event,key='handlers_event',enable_events=True)],
+            [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True)],
+            [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True)],
+            [sg.Text(get_locale("handlersmetod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True)],
+            [sg.Button(get_locale('edit_post_execute'),key='btn_pe')],
+            [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True)],
+            [sg.Button(get_locale('save'),key='btn_save')]
+     
+    ]              )
+
+
+        # ------ Event Loop ------
+        while True:
+            e_event, e_values = editwindowh.read()
+            #print(event, values)
+            if e_event == sg.WIN_CLOSED:
+                break
+
+    
+            if e_event == 'handlers_action':
+                elements['action']=get_key(action_elements,e_values['handlers_action'])  
+                update_conf()
+            if e_event == 'handlers_type':
+                elements['type']=get_key(handler_elements,e_values['handlers_type'])
+                update_conf()
+            if e_event == 'handlers_event':
+                if isCV:
+                    elements['event']=get_key(event_elements_cv,e_values['handlers_event'])      
+                else:    
+                    elements['event']=get_key(event_elements,e_values['handlers_event'])      
+                update_conf()
+            if e_event == 'handlers_method':
+                elements['method']=e_values['handlers_method']      
+                update_conf()
+            if e_event == 'handlers_postExecute':
+                elements['postExecute']=e_values['handlers_postExecute'] 
+                update_conf()
+            if e_event == 'btn_save':         
+                break
+            if e_event=='btn_pe':
+                if elements.get('postExecute','')=='' :
+                    dpe = {}
+                    edit_handler_form(None,dpe) 
+                    pe=[dpe]
+                         
+                else:   
+                    pe =json.loads(elements.get('postExecute')) 
+                    edit_handler_form(editwindowh,pe[0])      
+                
+                elements['postExecute']=json.dumps(pe)
+                update_conf()
+                editwindowh['handlers_postExecute'].update(elements['postExecute'])
+
+
+           
+        load_screen_handlers()
+        if isCV:
+            window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])     
+        else:    
+            window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])     
+
+        editwindowh.Close()          
 
 #SimpleUI configuration initialization
 def load_OfflineOnCreate():
@@ -1701,6 +1910,8 @@ def init_configuration(window):
     window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
     if(len(data_screen_lines[1:][:])>0):    
         window['ScreenLinesTable'].update(select_rows =[0])
+
+    load_screen_handlers()
 
     load_OfflineOnCreate()
     load_MainMenu() 
@@ -1923,12 +2134,16 @@ def write_cofiguration_property(event,value,values):
          configuration_json['ClientConfiguration']['LaunchProcess']=value     
     elif event == 'launch_variable':
          configuration_json['ClientConfiguration']['LaunchVar']=value     
+    elif event == 'menu_web_template':
+         configuration_json['ClientConfiguration']['MenuWebTemplate']=value     
     elif event == 'Launch':
          configuration_json['ClientConfiguration']['Launch']=get_key(start_screen_elements,value)     
     elif event == 'def_service_online':
          configuration_json['ClientConfiguration']['OnlineServiceConfiguration']=value     
     elif event == 'def_service_python':
-         configuration_json['ClientConfiguration']['DefServiceConfiguration']=value     
+         configuration_json['ClientConfiguration']['DefServiceConfiguration']=value
+    elif event == 'web_handlers_python':
+         configuration_json['ClientConfiguration']['WebHandlersFile']=value          
     
     elif event == 'confoptions_dictionaries':
          jconfiguration_settings['dictionaries']=value
@@ -1990,10 +2205,20 @@ def load_configuration_properties():
     else:    
         window['launch_variable'].update('') 
 
+    if 'MenuWebTemplate' in configuration_json['ClientConfiguration']:
+        window['menu_web_template'].update(configuration_json['ClientConfiguration']['MenuWebTemplate'])
+    else:    
+        window['menu_web_template'].update('')     
+
     if 'DefServiceConfiguration' in configuration_json['ClientConfiguration']:
         window['def_service_python'].update(configuration_json['ClientConfiguration']['DefServiceConfiguration'])
     else:
         window['def_service_python'].update('')
+
+    if 'WebHandlersFile' in configuration_json['ClientConfiguration']:
+        window['web_handlers_python'].update(configuration_json['ClientConfiguration']['WebHandlersFile'])
+    else:
+        window['web_handlers_python'].update('')    
 
 
     if 'OnlineServiceConfiguration' in configuration_json['ClientConfiguration']:
@@ -2252,7 +2477,8 @@ def create_project():
             load_configuration_properties()    
             load_processes(True)
             load_screens(True)
-            load_screen_lines(False,True)    
+            load_screen_lines(False,True)  
+            load_screen_handlers()  
             set_visibility(jcurrent_screen)    
             init_configuration(window)
 
@@ -2282,6 +2508,7 @@ def open_project():
                 load_processes()
                 load_screens()
                 load_screen_lines()    
+                load_screen_handlers()
                 set_visibility(jcurrent_screen)    
                 init_configuration(window)
 
@@ -2326,9 +2553,9 @@ def get_conf():
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    if not func is None:
+        
+        func()
     
 
 @app.route('/shutdown', methods=['POST'])
@@ -2352,6 +2579,7 @@ if __name__ == "__main__":
     load_processes(True)
     load_screens(True)
     load_screen_lines(False,True)
+    load_screen_handlers()
 
     #layoutFile = [[sg.T("")], [sg.Text("Файл конфигурации: "), sg.Input(key="conf_file",enable_events=True), sg.FileBrowse()]]
     
@@ -2388,7 +2616,9 @@ if __name__ == "__main__":
 
     layoutFileHandlers= [sg.Text(get_locale('python_handlers_file') ), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])]
 
-    tab_layout_conf_handlers=[[sg.Text(get_locale('python_handlers_file'),size=50), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])],[sg.T('')],[sg.Text(get_locale('service_handler_python') ,size=50),sg.Input(do_not_clear=True, key='def_service_python',enable_events=True)],
+    tab_layout_conf_handlers=[[sg.Text(get_locale('python_handlers_file'),size=50), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])],[sg.T('')]
+    ,[sg.Text(get_locale('web_handlers_file_python') ,size=50),sg.Input(do_not_clear=True, key='web_handlers_python',enable_events=True)],
+    [sg.Text(get_locale('service_handler_python') ,size=50),sg.Input(do_not_clear=True, key='def_service_python',enable_events=True)],
     [sg.Text(get_locale('service_handler_online') ,size=50),sg.Input(do_not_clear=True, key='def_service_online',enable_events=True,expand_x=True)],
     [sg.Text(get_locale('reply_handler_python') ,size=50),sg.Input(do_not_clear=True, key='def_notification_python',enable_events=True,expand_x=True)],
     [sg.Text(get_locale('income_content_handler_python') ,size=50),sg.Input(do_not_clear=True, key='def_content_python',enable_events=True,expand_x=True)]
@@ -2400,6 +2630,7 @@ if __name__ == "__main__":
         [sg.Text(get_locale('menu_type'),size=35),sg.Combo(captions_start_screen_elements, key='Launch',enable_events=True,expand_x=True)],
         [sg.Text(get_locale('menu_process_with_layouts') ,size=35),sg.Input(do_not_clear=True, key='launch_process',enable_events=True,expand_x=True)],
         [sg.Text(get_locale('menu_variable_of_tiles'),size=35),sg.Input(do_not_clear=True, key='launch_variable',enable_events=True,expand_x=True)],
+        [sg.Text(get_locale('menu_web_template'),size=35),sg.Input(do_not_clear=True, key='menu_web_template',enable_events=True,expand_x=True)],
 
     ]
 
@@ -2743,7 +2974,7 @@ if __name__ == "__main__":
 
         if event in ['conf_name','conf_version','conf_description','conf_backservice','conf_backservice_exit','conf_nosql_name','conf_intent','conf_intent_var','conf_url_face_recognition','conf_keyboard_menu',
         'confoptions_vendor','confoptions_vendor_url','confoptions_vendor_login','confoptions_vendor_password','confoptions_vendor_auth','conf_split_mode','confoptions_client_code','confoptions_handlers_url','confoptions_handlers_login','confoptions_handlers_password','confoptions_handlers_auth',
-        'Launch','launch_process','launch_variable','def_service_python','def_service_online','confoptions_dictionaries'] :
+        'Launch','launch_process','launch_variable','def_service_python','def_service_online','confoptions_dictionaries','menu_web_template','web_handlers_python'] :
         
             write_cofiguration_property(event,values[event],values)
 
@@ -3024,6 +3255,8 @@ if __name__ == "__main__":
             load_screen_lines(False,True)
             window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
 
+            load_screen_handlers()
+
             update_conf()
 
         
@@ -3064,6 +3297,9 @@ if __name__ == "__main__":
                     load_screen_lines(False,True)
                     window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
 
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:]) 
+
                     update_conf()
 
                 elif new_process.get('type')=='CVOperation':    
@@ -3078,7 +3314,9 @@ if __name__ == "__main__":
                     load_cvsteps(True)
                     window['ScreensTable'].update(values=data_screens[1:][:]) 
                     
-                    
+                    load_screen_handlers()
+                    window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])
+
                     update_conf()
 
 
@@ -3102,6 +3340,9 @@ if __name__ == "__main__":
 
                 load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
                 window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
+
+                load_screen_handlers()
+                window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
 
             update_conf()
 
@@ -3157,6 +3398,9 @@ if __name__ == "__main__":
                     load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
                     window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
 
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:]) 
+
                     update_conf()
 
                 elif jcurrent_process.get('type')=='CVOperation':    
@@ -3167,6 +3411,9 @@ if __name__ == "__main__":
                     
                     load_cvsteps()
                     window['ScreensTable'].update(values=data_screens[1:][:]) 
+
+                    load_screen_handlers()
+                    window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:]) 
 
                     update_conf()
 
@@ -3189,6 +3436,8 @@ if __name__ == "__main__":
                     load_cvsteps(True)
                     window['ScreensTable'].update(values=data_screens[1:][:]) 
 
+                    load_screen_handlers()
+                    window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])    
                 
             else:    
                 jcurrent_process['Operations'].remove(jcurrent_screen) 
@@ -3199,7 +3448,10 @@ if __name__ == "__main__":
                     window['ScreensTable'].update(values=data_screens[1:][:]) 
 
                     load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
-                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])  
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
+
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])  
 
             update_conf()
 
@@ -3209,7 +3461,9 @@ if __name__ == "__main__":
                 jcurrent_screen['Elements'].append(new_screen_line)
                 edit_element_form(None,jcurrent_screen['Elements'][-1]) 
 
-                update_conf()   
+                update_conf()  
+
+
 
         if event=='btn_delete_screen_line':
             if not jcurrent_screen==None:
@@ -3234,6 +3488,53 @@ if __name__ == "__main__":
                 window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
             except Exception as e:  # This is the correct syntax
                                 sg.popup('Wrong clipboard content',  e,   grab_anywhere=True)
+
+        if event=='btn_add_screen_handler' :
+            if not jcurrent_screen==None:
+                new_handlers_line = {"event":"","action":"","type":"","method":"","postExecute":""}   
+                if not  'Handlers' in jcurrent_screen:
+                    jcurrent_screen['Handlers']=[]
+
+                jcurrent_screen['Handlers'].append(new_handlers_line)
+                edit_handler_form(None,jcurrent_screen['Handlers'][-1]) 
+
+                update_conf()     
+        if  event=='btn_add_screen_handler_cv':
+            if not jcurrent_screen==None:
+                new_handlers_line = {"event":"","action":"","type":"","method":"","postExecute":""}   
+                if not  'Handlers' in jcurrent_screen:
+                    jcurrent_screen['Handlers']=[]
+
+                jcurrent_screen['Handlers'].append(new_handlers_line)
+                edit_handler_form(None,jcurrent_screen['Handlers'][-1],True) 
+
+                update_conf()             
+        if event=='btn_delete_screen_handler' :
+            if not jcurrent_screen==None:
+                if len(values['ScreenHandlersTable'])>0:
+                    current_position = values['ScreenHandlersTable'][0]
+                    
+                    jcurrent_screen['Handlers'].pop(current_position)
+                
+
+                    update_conf()  
+
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])     
+        if  event=='btn_delete_screen_handler_cv':
+            if not jcurrent_screen==None:
+                if len(values['ScreenHandlersTableCV'])>0:
+                    if 'Handlers' in jcurrent_screen:
+                        current_position = values['ScreenHandlersTableCV'][0]
+                        
+                        jcurrent_screen['Handlers'].pop(current_position)
+                    
+
+                        update_conf()  
+
+                        load_screen_handlers()
+                        window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])                    
+
         if event == 'ConfigurationTable':
             data_selected = [data[row] for row in values[event]]
             row_selected = values['ConfigurationTable'][0]
@@ -3253,6 +3554,9 @@ if __name__ == "__main__":
 
                 if(len(data_screens[1:][:])>0):
                     window['ScreensTable'].update(select_rows =[0])
+
+                load_screen_handlers()
+                window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])    
 
             else:    
                 window['process_name'].update(jcurrent_process['ProcessName'])
@@ -3276,6 +3580,9 @@ if __name__ == "__main__":
                 load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
                 window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
 
+                load_screen_handlers()
+                window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
+
                 if(len(data_screens[1:][:])>0):
                     window['ScreensTable'].update(select_rows =[0])
        
@@ -3297,6 +3604,14 @@ if __name__ == "__main__":
 
                 load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
                 window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
+
+                if jcurrent_screen.get('type')=='CVFrame':
+                    load_screen_handlers()
+                    window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])
+                else:    
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
+
             
         if event == 'ScreenLinesTable':
             #print(event)
@@ -3305,6 +3620,21 @@ if __name__ == "__main__":
                 jcurrent_screen_line = all_screen_lines_list[row_clicked]
                 
                 edit_element_form(row_clicked,jcurrent_screen_line)
+
+        if event == 'ScreenHandlersTable':
+            #print(event)
+            if len(values['ScreenHandlersTable'])>0:
+                row_clicked =  values['ScreenHandlersTable'][0]
+                jcurrent_screen_line = all_screen_handlers_list[row_clicked]
+                
+                edit_handler_form(row_clicked,jcurrent_screen_line)
+        if event == 'ScreenHandlersTableCV':
+            #print(event)
+            if len(values['ScreenHandlersTableCV'])>0:
+                row_clicked =  values['ScreenHandlersTableCV'][0]
+                jcurrent_screen_line = all_screen_handlers_list[row_clicked]
+                
+                edit_handler_form(row_clicked,jcurrent_screen_line,True)                
     
     requests.post('http://127.0.0.1:5000/shutdown')    
     
