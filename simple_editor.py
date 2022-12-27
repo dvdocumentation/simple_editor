@@ -564,12 +564,20 @@ def load_screens(SetCurrent=False):
     all_screens_list.clear()
     
     if jcurrent_process!=None:
-        for elem in jcurrent_process['Operations']:
-            all_screens_list.append(elem)
-            type = elem['type']
-            if type =="Operation":
-                row=[elem['Name']]
-            data_screens.append(row)
+        if jcurrent_process['type']=="CVOperation":
+            for elem in jcurrent_process['CVFrames']:
+                all_screens_list.append(elem)
+                type = elem['type']
+                if type =="CVFrame":
+                    row=[elem['Name']]
+                data_screens.append(row)
+        else:    
+            for elem in jcurrent_process['Operations']:
+                all_screens_list.append(elem)
+                type = elem['type']
+                if type =="Operation":
+                    row=[elem['Name']]
+                data_screens.append(row)
 
     if len(all_screens_list)>0  and (jcurrent_screen==None or SetCurrent):
         jcurrent_screen=all_screens_list[0]   
@@ -608,17 +616,18 @@ def load_screen_lines(is_CV=False,SetCurrent=False):
 
     if not is_CV:
         if jcurrent_screen!=None:
+            if 'Elements' in jcurrent_screen:
 
-            for elem in jcurrent_screen['Elements']:
-                all_screen_lines_list.append(elem)
-                value =''
-                var=''
-                if 'Value' in elem:
-                    value = elem['Value']
-                if 'Variable' in elem:
-                    var =  elem['Variable']   
-                row=[get_synonym(screen_elements,elem.get('type','')),value,var]
-                data_screen_lines.append(row)  
+                for elem in jcurrent_screen['Elements']:
+                    all_screen_lines_list.append(elem)
+                    value =''
+                    var=''
+                    if 'Value' in elem:
+                        value = elem['Value']
+                    if 'Variable' in elem:
+                        var =  elem['Variable']   
+                    row=[get_synonym(screen_elements,elem.get('type','')),value,var]
+                    data_screen_lines.append(row)  
 
         if len(all_screen_lines_list)>0 and (jcurrent_screen_line==None or SetCurrent):
             jcurrent_screen_line=all_screen_lines_list[0]                 
