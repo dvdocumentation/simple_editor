@@ -120,7 +120,7 @@ data_screen_handlers.append(columns_handlers)
 data_screen_lines.append(columns)
 
 headings_screen_lines = [get_locale("screen_element"),get_locale("value"),get_locale("variable")]
-headings_screen_handlers = [get_locale("event"),get_locale("action"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
+headings_screen_handlers = [get_locale("event"),get_locale("action"),get_locale("listener"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
 
 action_elements = {"run":get_locale("run"),"runasync":get_locale("runasync")}
 captions_action_elements = get_title_list(action_elements)
@@ -348,20 +348,22 @@ layout_new_handlers = [
               ] 
 
 layout_handler_element =[
-     [sg.Text(get_locale("event")),sg.Combo(captions_event_elements,key='handlers_event',enable_events=True)],
-    [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True)],
-    [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True)],
-    [sg.Text(get_locale("handlersmetod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True)],
-    [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True)]
+     [sg.Text(get_locale("event"),size=50),sg.Combo(captions_event_elements,key='handlers_event',enable_events=True,size=200)],
+    [sg.Text(get_locale("action"),size=50),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlerslistener"),size=50 ),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlertype"),size=50),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlersmetod") ,size=50),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,size=200)],
+    [sg.Text(get_locale("postExecute"),size=50),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,size=200)]
      
     ]    
 
 layout_handler_element_cv =[
-     [sg.Text(get_locale("event")),sg.Combo(captions_event_elements_cv,key='handlers_event',enable_events=True)],
-    [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True)],
-    [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True)],
-    [sg.Text(get_locale("handlersmetod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True)],
-    [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True)]
+     [sg.Text(get_locale("event"),size=50),sg.Combo(captions_event_elements_cv,key='handlers_event',enable_events=True,size=200)],
+    [sg.Text(get_locale("action"),size=50),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,size=200)],
+     [sg.Text(get_locale("handlerslistener") ,size=50),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlertype"),size=50),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlersmetod") ,size=50),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,size=200)],
+    [sg.Text(get_locale("postExecute"),size=50),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,size=200)]
      
     ]           
 
@@ -491,6 +493,12 @@ def set_visibility(jcurrent_screen):
             window['CVFrameDefAction'].update(jcurrent_screen.get('CVFrameDefAction',''))
             window['CVFrameDefOnTouch'].update(jcurrent_screen.get('CVFrameDefOnTouch',''))
 
+            data_recognition = []
+            if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
+               for elem in configuration_json['ClientConfiguration']['RecognitionTemplates']:
+                        data_recognition.append(elem['name'])
+
+            window['cvrecognition_type'].update(values = data_recognition)
           
             window['cvrecognition_type'].update(jcurrent_screen.get('RecognitionTemplate'))
 
@@ -634,7 +642,7 @@ def load_screen_handlers():
                     method = elem['method']
                 if 'postExecute' in elem:
                     postExecute =  elem['postExecute']   
-                row=[get_synonym(screen_elements,elem.get('event','')),get_synonym(screen_elements,elem.get('action','')),get_synonym(screen_elements,elem.get('type','')),method,postExecute]
+                row=[get_synonym(screen_elements,elem.get('event','')),get_synonym(screen_elements,elem.get('action','')),elem.get('listener',''),get_synonym(screen_elements,elem.get('type','')),method,postExecute]
                 data_screen_handlers.append(row)  
 
         
@@ -1312,17 +1320,24 @@ def update_recognition(window,SetCurrent=True):
 
     if len(all_recognition_list)>0 and SetCurrent:
         jcurrent_recognition = all_recognition_list[0]
-        set_visibility_recognition(window,jcurrent_recognition)
+        set_visibility_recognition(window,jcurrent_recognition,True)
 
     return  data_recognition         
 
-def save_recognition_values_event( jcurrent_recognition,event,values):
+def save_recognition_values_event( jcurrent_recognition,event,values,element=False):
     
+    if element: 
+        source = values
+    else:
+        source = jcurrent_recognition    
 
     if event==  'settings_name':  
                 jcurrent_recognition['name'] = values['settings_name'] 
     if event==  'TypeRecognition':  
-        jcurrent_recognition['TypeRecognition'] = get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) 
+
+           
+
+        jcurrent_recognition['TypeRecognition'] = get_key(recognition_elements,source.get('TypeRecognition')) 
 
         if get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) =="Number":
                 jcurrent_recognition['NumberRecognition'] =True
@@ -1330,57 +1345,57 @@ def save_recognition_values_event( jcurrent_recognition,event,values):
                 jcurrent_recognition['NumberRecognition'] =False    
 
 
-        if  get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) =="Date":
+        if  get_key(recognition_elements,source.get('TypeRecognition')) =="Date":
                 jcurrent_recognition['DateRecognition'] =True  
         else:
             jcurrent_recognition['DateRecognition']=False
 
 
-        if  get_key(recognition_elements,jcurrent_recognition.get('TypeRecognition')) =="PlateNumber":
+        if  get_key(recognition_elements,source.get('TypeRecognition')) =="PlateNumber":
                 jcurrent_recognition['PlateNumberRecognition'] =True  
         else:        
             jcurrent_recognition['PlateNumberRecognition'] =False 
 
 
     if event==  'query':  
-                b64=base64.b64encode(values['query'] .encode('utf-8')).decode('utf-8')
+                b64=base64.b64encode(source['query'] .encode('utf-8')).decode('utf-8')
                 jcurrent_recognition['query'] = b64
     elif event==  'values_list':  
-                jcurrent_recognition['values_list'] = values['values_list'] 
+                jcurrent_recognition['values_list'] = source['values_list'] 
     elif event==  'mesure_qty':  
-                jcurrent_recognition['mesure_qty'] = values['mesure_qty'] 
+                jcurrent_recognition['mesure_qty'] = source['mesure_qty'] 
     elif event==  'min_freq':  
-                jcurrent_recognition['min_freq'] = values['min_freq'] 
+                jcurrent_recognition['min_freq'] = source['min_freq'] 
     elif event==  'max_length':  
-                jcurrent_recognition['max_length'] = values['max_length'] 
+                jcurrent_recognition['max_length'] = source['max_length'] 
     elif event==  'fmin_length':  
-                jcurrent_recognition['min_length'] = values['fmin_length']             
+                jcurrent_recognition['min_length'] = source['fmin_length']             
     elif event==  'count_objects':  
-                jcurrent_recognition['count_objects'] = values['count_objects'] 
+                jcurrent_recognition['count_objects'] = source['count_objects'] 
     elif event==  'ReplaceO':  
-                jcurrent_recognition['ReplaceO'] = values['ReplaceO'] 
+                jcurrent_recognition['ReplaceO'] = source['ReplaceO'] 
     elif event==  'ToUpcase':  
-                jcurrent_recognition['ToUpcase'] = values['ToUpcase'] 
+                jcurrent_recognition['ToUpcase'] = source['ToUpcase'] 
     elif event==  'control_field':  
-                jcurrent_recognition['control_field'] = values['control_field'] 
+                jcurrent_recognition['control_field'] = source['control_field'] 
     elif event==  'result_field':  
-                jcurrent_recognition['result_field'] = values['result_field'] 
+                jcurrent_recognition['result_field'] = source['result_field'] 
                 if 'cursor' in jcurrent_recognition:
                    cursorstr =  jcurrent_recognition['cursor'][0]
-                   cursorstr['field'] =values['result_field']
+                   cursorstr['field'] =source['result_field']
                 else:
                    jcurrent_recognition['cursor']=[]    
-                   jcurrent_recognition['cursor'].append({"field":values['result_field']})
+                   jcurrent_recognition['cursor'].append({"field":source['result_field']})
 
     elif event==  'result_var':  
-                jcurrent_recognition['result_var'] = values['result_var'] 
+                jcurrent_recognition['result_var'] = source['result_var'] 
                 
                 if 'cursor' in jcurrent_recognition:
                    cursorstr =  jcurrent_recognition['cursor'][0]
-                   cursorstr['var'] =values['result_var']
+                   cursorstr['var'] =source['result_var']
                 else:
                    jcurrent_recognition['cursor']=[] 
-                   jcurrent_recognition['cursor'].append({"var":values['result_var']})
+                   jcurrent_recognition['cursor'].append({"var":source['result_var']})
 
       
 def window_recognition():
@@ -1457,20 +1472,20 @@ def window_recognition():
 
             window_recognition['RecognitionTable'].update(select_rows =[len(configuration_json['ClientConfiguration']['RecognitionTemplates'])-1])
 
-            set_visibility_recognition(window_recognition,jcurrent_recognition)
+            set_visibility_recognition(window_recognition,jcurrent_recognition,True)
 
             update_conf()
 
         if s_event in ['TypeRecognition','query','values_list','mesure_qty','min_freq','fmin_length','max_length','count_objects','ReplaceO','ToUpcase','control_field','result_field','result_var']:
-            save_recognition_values_event(jcurrent_recognition,s_event,s_values)
-            set_visibility_recognition(window_recognition,jcurrent_recognition)
+            save_recognition_values_event(jcurrent_recognition,s_event,s_values,True)
+            set_visibility_recognition(window_recognition,jcurrent_recognition,True)
         if s_event == 'RecognitionTable':
             
             row_selected = s_values['RecognitionTable'][0]
             jcurrent_recognition = all_recognition_list[row_selected]
 
             window_recognition['settings_name'].update(jcurrent_recognition['name'])
-            set_visibility_recognition(window_recognition,jcurrent_recognition)
+            set_visibility_recognition(window_recognition,jcurrent_recognition,True)
         if s_event=='settings_name':
             jcurrent_recognition['name']=s_values['settings_name']
             
@@ -1744,24 +1759,27 @@ def edit_handler_form(row,elements,isCV=False):
         if not  row ==None:
             
             editwindowh = sg.Window(get_locale("handler"),icon='ic_32.ico',modal=True).Layout([
-    [sg.Text(get_locale("event")),sg.Combo(captions_event,key='handlers_event',enable_events=True,default_value=get_synonym(event_elements,elements.get('event','')))],            
-    [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,default_value=get_synonym(action_elements,elements.get('action','')))],
-    [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,default_value=get_synonym(handler_elements,elements.get('type','')))],
-    [sg.Text(get_locale("handlersmethod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,default_text=elements.get('method',''))],
+    [sg.Text(get_locale("event"),size=35),sg.Combo(captions_event,key='handlers_event',enable_events=True,default_value=get_synonym(event_elements,elements.get('event','')),size=125)],            
+    [sg.Text(get_locale("listener"),size=35),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,default_text=elements.get('listener',''))],
+    [sg.Text(get_locale("action"),size=35),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,default_value=get_synonym(action_elements,elements.get('action','')),size=125)],
+    
+    [sg.Text(get_locale("handlertype"),size=35),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,default_value=get_synonym(handler_elements,elements.get('type','')),size=125)],
+    [sg.Text(get_locale("handlersmethod") ,size=35),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,default_text=elements.get('method',''),size=125)],
     [sg.Button(get_locale('edit_post_execute'),key='btn_pe')],
-    [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,default_text=elements.get('postExecute',''))],
+    [sg.Text(get_locale("postExecute"),size=35),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,default_text=elements.get('postExecute',''),size=125)],
     [sg.Button(get_locale('save'),key='btn_save')]
      
     ]              )
     
         else:
             editwindowh = sg.Window(get_locale("handler"),icon='ic_32.ico',modal=True).Layout([
-            [sg.Text(get_locale("event")),sg.Combo(captions_event,key='handlers_event',enable_events=True)],
-            [sg.Text(get_locale("action")),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True)],
-            [sg.Text(get_locale("handlertype")),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True)],
-            [sg.Text(get_locale("handlersmetod") ),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True)],
+            [sg.Text(get_locale("event"),size=35),sg.Combo(captions_event,key='handlers_event',enable_events=True,size=125)],
+            [sg.Text(get_locale("action"),size=35),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,size=125)],
+            [sg.Text(get_locale("listener") ,size=35),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,default_text=elements.get('listener',''),size=125)],
+            [sg.Text(get_locale("handlertype"),size=35),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,size=125)],
+            [sg.Text(get_locale("handlersmetod") ,size=35),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,size=125)],
             [sg.Button(get_locale('edit_post_execute'),key='btn_pe')],
-            [sg.Text(get_locale("postExecute")),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True)],
+            [sg.Text(get_locale("postExecute"),size=35),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,size=125)],
             [sg.Button(get_locale('save'),key='btn_save')]
      
     ]              )
@@ -1787,9 +1805,12 @@ def edit_handler_form(row,elements,isCV=False):
                 else:    
                     elements['event']=get_key(event_elements,e_values['handlers_event'])      
                 update_conf()
+            if e_event == 'handlers_listener':
+                elements['listener']=e_values['handlers_listener']      
+                update_conf()
             if e_event == 'handlers_method':
                 elements['method']=e_values['handlers_method']      
-                update_conf()
+                update_conf()    
             if e_event == 'handlers_postExecute':
                 elements['postExecute']=e_values['handlers_postExecute'] 
                 update_conf()
