@@ -218,8 +218,8 @@
     "start_screen":"Start screen",
     "configuration_properties":"Properties",
     "handlers":"Handlers",
-    "handlers_shedule":"Scheduled and start handlers",
-    "additional_modules":"Additional Python modules",
+    "handlers_shedule":"Scheduled and onStart",
+    "additional_modules":"Python files",
     "mediafiles":"Cached media files",
     "add_template":"Add template",
     "delete_template":"Delete template",
@@ -263,8 +263,12 @@
     "tab":"Tab",
     "gravity_vertical":"Vertical gravity",
     "top":"Top",
-    "bottom":"Bottom"
-
+    "bottom":"Bottom",
+    "arch2":"Architecture 2.0",
+    "common_handlers":"Common handlers",
+    "new_handlers_cv":"Handlers (2.0)",
+    "add_common_handler":"Add",
+    "delete_common_handler":"Delete"
 
 
 }

@@ -214,8 +214,8 @@
     "start_screen":"Начальный экран",
     "configuration_properties":"Свойства",
     "handlers":"Обработчики",
-    "handlers_shedule":"Обработчики Таймеры/ПриЗапуске",
-    "additional_modules":"Дополнительные модули Python",
+    "handlers_shedule":"Таймеры/ПриЗапуске",
+    "additional_modules":"Модули Python",
     "mediafiles":"Медиафайлы",
     "add_template":"Добавить шаблон",
     "delete_template":"Удалить шаблон",
@@ -261,7 +261,12 @@
     "tab":"Закладка",
     "gravity_vertical":"Горизонтальное положение",
     "top":"Верх",
-    "bottom":"Низ"
+    "bottom":"Низ",
+    "arch2":"Режим архитектуры 2.0",
+    "common_handlers":"Общие обработчики",
+    "new_handlers_cv":"Обработчики (2.0)",
+    "add_common_handler":"Добавить",
+    "delete_common_handler":"Удалить"
 
 
 

@@ -116,11 +116,15 @@ columns_handlers = ['','','','']
 data_screen_handlers = []
 data_screen_handlers.append(columns_handlers)
 
+data_common_handlers = []
+data_common_handlers.append(columns_handlers)
+
 #screen list elemrnts
 data_screen_lines.append(columns)
 
 headings_screen_lines = [get_locale("screen_element"),get_locale("value"),get_locale("variable")]
 headings_screen_handlers = [get_locale("event"),get_locale("action"),get_locale("listener"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
+headings_common_handlers = [get_locale("alias"),get_locale("event"),get_locale("action"),get_locale("listener"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
 
 action_elements = {"run":get_locale("run"),"runasync":get_locale("runasync")}
 captions_action_elements = get_title_list(action_elements)
@@ -128,16 +132,24 @@ captions_action_elements = get_title_list(action_elements)
 event_elements = {"onStart":get_locale("onStart"),"onPostStart":get_locale("onPostStart"),"onInput":get_locale("onInput")}
 captions_event_elements = get_title_list(event_elements)
 
+common_event_elements = {"onLaunch":get_locale("onLaunch"),"onIntentBarcode":get_locale("onIntentBarcode"),"onBluetoothBarcode":get_locale("onBluetoothBarcode"),"onBackgroundCommand":get_locale("onBackgroundCommand"),"onRecognitionListenerResult":get_locale("onRecognitionListenerResult"),
+"onIntent":get_locale("onIntent"),"onWebServiceSyncCommand":get_locale("onWebServiceSyncCommand"),"onSQLDataChange":get_locale("onSQLDataChange"),"onSQLError":get_locale("onSQLError"),"onOpenFile":get_locale("onOpenFile")}
+captions_common_event_elements = get_title_list(common_event_elements)
+
+#,"onNotificationReply":get_locale("onNotificationReply")
+
 event_elements_cv = {"OnCreate":get_locale("OnCreate"),"OnObjectDetected":get_locale("OnObjectDetected"),"OnTouch":get_locale("OnTouch"),"OnInput":get_locale("OnInput")}
 captions_event_elements_cv = get_title_list(event_elements_cv)
 
 
-handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"httpworker":get_locale("httpworker"),"worker":get_locale("worker")}
+handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"httpworker":get_locale("httpworker"),"worker":get_locale("worker"),"set":get_locale("set")}
 captions_handler_elements = get_title_list(handler_elements)
 
 
 all_screen_lines_list = []
 all_screen_handlers_list = []
+
+all_common_handlers_list = []
 
 screen_elements = {"LinearLayout":get_locale("layout"),"barcode":get_locale("barcode"),"HorizontalGallery":get_locale("horizontal_gallery"),
 "voice":get_locale("voice_input"),"photo":get_locale("camera_capture"),"photoGallery":get_locale("gallery"),"voice":get_locale("tts"),"signature":get_locale("signature"),
@@ -147,7 +159,7 @@ captions_screen_elements = get_title_list(screen_elements)
 layout_elements = {"LinearLayout":get_locale("layout"),"Tabs":get_locale("Tabs"),"Tab":get_locale("Tab"),"TextView":get_locale("title"),"Button":get_locale("button"),
 "EditTextText":get_locale("string_input"),"EditTextNumeric":get_locale("numeric_input"),"EditTextPass":get_locale("password_input"),"EditTextAuto":get_locale("event_input"),"EditTextAutocomplete":get_locale("autocompete_input"),
 "ModernEditText":get_locale("modern_input"),"Picture":get_locale("picture"),"CheckBox":get_locale("checkbox"),"Gauge":get_locale("gauge"),"Chart":get_locale("chart"),"SpinnerLayout":get_locale("spinner"),"TableLayout":get_locale("table"),"CartLayout":get_locale("cart"),
-"MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button"),"html":get_locale("HTML"),"map":get_locale("map")}
+"MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button"),"html":get_locale("HTML"),"map":get_locale("map"),"file":get_locale("file")}
 captions_layout_elements =get_title_list(layout_elements)
 
 detector_elements = {"Barcode":get_locale("barcodes"),"OCR":get_locale("ocr"),"Objects_Full":get_locale("ocr_and_barcodes"),"Objects_OCR":get_locale("objects_ocr"),
@@ -347,15 +359,36 @@ layout_new_handlers = [
 
               ] 
 
+layout_common_new_handlers = [
+    [sg.Button(get_locale("add_common_handler"),key='btn_add_common_handler'),sg.Button(get_locale("delete_common_handler"),key='btn_delete_common_handler')],
+    [
+               sg.Table(values=data_common_handlers, headings=headings_common_handlers,auto_size_columns=True,
+                   
+                    display_row_numbers=False,
+                    num_rows=10,
+                    
+                    key='CommonHandlersTable',
+                    selected_row_colors='red on yellow',
+                                      
+                    select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                    bind_return_key =True,
+                    
+                    expand_x=True,expand_y=True) ]
+
+              ]               
+
 layout_handler_element =[
-     [sg.Text(get_locale("event"),size=50),sg.Combo(captions_event_elements,key='handlers_event',enable_events=True,size=200)],
-    [sg.Text(get_locale("action"),size=50),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,size=200)],
-    [sg.Text(get_locale("handlerslistener"),size=50 ),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,size=200)],
-    [sg.Text(get_locale("handlertype"),size=50),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,size=200)],
-    [sg.Text(get_locale("handlersmetod") ,size=50),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,size=200)],
-    [sg.Text(get_locale("postExecute"),size=50),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,size=200)]
+    [sg.Text(get_locale("alias"),size=50 ),sg.Input(do_not_clear=True, key='common_handlers_alias',enable_events=True,size=200)],
+     [sg.Text(get_locale("event"),size=50),sg.Combo(captions_event_elements,key='common_handlers_alias',enable_events=True,size=200)],
+    [sg.Text(get_locale("action"),size=50),sg.Combo(captions_action_elements,key='common_handlers_alias',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlerslistener"),size=50 ),sg.Input(do_not_clear=True, key='common_handlers_alias',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlertype"),size=50),sg.Combo(captions_handler_elements,key='common_handlers_alias',enable_events=True,size=200)],
+    [sg.Text(get_locale("handlersmetod") ,size=50),sg.Input(do_not_clear=True, key='common_handlers_alias',enable_events=True,size=200)],
+    [sg.Text(get_locale("postExecute"),size=50),sg.Input(do_not_clear=True, key='common_handlers_alias',enable_events=True,size=200)]
      
-    ]    
+    ] 
+
+
 
 layout_handler_element_cv =[
      [sg.Text(get_locale("event"),size=50),sg.Combo(captions_event_elements_cv,key='handlers_event',enable_events=True,size=200)],
@@ -437,11 +470,11 @@ layout_lines = [[sg.Button(get_locale("add_screen_element"),key='btn_add_screen_
 
 
 tab_layout_screen = [
-    [sg.TabGroup([[sg.Tab(get_locale("common") ,layout_common_screen),sg.Tab(get_locale("structure") ,layout_lines),sg.Tab(get_locale("screen_handlers"),layout_listener_online),sg.Tab(get_locale("new_screen_handlers"),layout_new_handlers)]],expand_x=True,expand_y=True) ]
+    [sg.TabGroup([[sg.Tab(get_locale("common") ,layout_common_screen),sg.Tab(get_locale("structure") ,layout_lines),sg.Tab(get_locale("screen_handlers"),layout_listener_online,key="screen_handlers"),sg.Tab(get_locale("new_screen_handlers"),layout_new_handlers)]],expand_x=True,expand_y=True) ]
                ]
 
 tab_layout_CVFrame = [
-    [sg.TabGroup([[sg.Tab(get_locale("common_cv") ,layout_common_cv),sg.Tab(get_locale("handlers_cv") ,cv_layout_listener_online),sg.Tab(get_locale("new_handlers_cv") ,cv_layout_new_handlers)]],expand_x=True,expand_y=True) ] 
+    [sg.TabGroup([[sg.Tab(get_locale("common_cv") ,layout_common_cv),sg.Tab(get_locale("handlers_cv") ,cv_layout_listener_online,key="handlers_cv"),sg.Tab(get_locale("new_handlers_cv") ,cv_layout_new_handlers)]],expand_x=True,expand_y=True) ] 
                ]               
 
 
@@ -653,6 +686,28 @@ def load_screen_handlers():
                     postExecute =  elem['postExecute']   
                 row=[get_synonym(screen_elements,elem.get('event','')),get_synonym(screen_elements,elem.get('action','')),elem.get('listener',''),get_synonym(screen_elements,elem.get('type','')),method,postExecute]
                 data_screen_handlers.append(row)  
+
+def load_common_handlers():
+    
+
+    data_common_handlers.clear()
+    columns = ['','','','','','']
+    data_common_handlers.append([columns])
+    all_common_handlers_list .clear()
+
+   
+    
+    if 'CommonHandlers' in configuration_json['ClientConfiguration']:
+            for elem in configuration_json['ClientConfiguration']['CommonHandlers']:
+                all_common_handlers_list.append(elem)
+                method =''
+                postExecute=''
+                if 'method' in elem:
+                    method = elem['method']
+                if 'postExecute' in elem:
+                    postExecute =  elem['postExecute']   
+                row=[elem.get('alias',''),get_synonym(screen_elements,elem.get('event','')),get_synonym(screen_elements,elem.get('action','')),elem.get('listener',''),get_synonym(screen_elements,elem.get('type','')),method,postExecute]
+                data_common_handlers.append(row)  
 
         
    
@@ -1756,6 +1811,98 @@ def edit_element_form(row,elements,is_layout=False):
         editwindow.close()  
 
 
+def edit_common_handler_form(row,elements,isCV=False):                   
+        global window
+
+        captions_event=captions_common_event_elements
+        
+       
+        if not  row ==None:
+            
+            editwindowh = sg.Window(get_locale("handler"),icon='ic_32.ico',modal=True).Layout([
+    [sg.Text(get_locale("alias") ,size=35),sg.Input(do_not_clear=True, key='handlers_alias',enable_events=True,default_text=elements.get('alias',''),size=125)],            
+    [sg.Text(get_locale("event"),size=35),sg.Combo(captions_event,key='handlers_event',enable_events=True,default_value=get_synonym(common_event_elements,elements.get('event','')),size=125)],            
+    [sg.Text(get_locale("listener"),size=35),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,default_text=elements.get('listener',''))],
+    [sg.Text(get_locale("action"),size=35),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,default_value=get_synonym(action_elements,elements.get('action','')),size=125)],
+    
+    [sg.Text(get_locale("handlertype"),size=35),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,default_value=get_synonym(handler_elements,elements.get('type','')),size=125)],
+    [sg.Text(get_locale("handlersmethod") ,size=35),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,default_text=elements.get('method',''),size=125)],
+    [sg.Button(get_locale('edit_post_execute'),key='btn_pe')],
+    [sg.Text(get_locale("postExecute"),size=35),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,default_text=elements.get('postExecute',''),size=125)],
+    [sg.Button(get_locale('save'),key='btn_save')]
+     
+    ]              )
+    
+        else:
+            editwindowh = sg.Window(get_locale("handler"),icon='ic_32.ico',modal=True).Layout([
+            [sg.Text(get_locale("handlersalias") ,size=35),sg.Input(do_not_clear=True, key='handlers_alias',enable_events=True,size=125)],    
+            [sg.Text(get_locale("event"),size=35),sg.Combo(captions_event,key='handlers_event',enable_events=True,size=125)],
+            [sg.Text(get_locale("action"),size=35),sg.Combo(captions_action_elements,key='handlers_action',enable_events=True,size=125)],
+            [sg.Text(get_locale("listener") ,size=35),sg.Input(do_not_clear=True, key='handlers_listener',enable_events=True,default_text=elements.get('listener',''),size=125)],
+            [sg.Text(get_locale("handlertype"),size=35),sg.Combo(captions_handler_elements,key='handlers_type',enable_events=True,size=125)],
+            [sg.Text(get_locale("handlersmetod") ,size=35),sg.Input(do_not_clear=True, key='handlers_method',enable_events=True,size=125)],
+            [sg.Button(get_locale('edit_post_execute'),key='btn_pe')],
+            [sg.Text(get_locale("postExecute"),size=35),sg.Input(do_not_clear=True, key='handlers_postExecute',enable_events=True,size=125)],
+            [sg.Button(get_locale('save'),key='btn_save')]
+     
+    ]              )
+
+
+        # ------ Event Loop ------
+        while True:
+            e_event, e_values = editwindowh.read()
+            #print(event, values)
+            if e_event == sg.WIN_CLOSED:
+                break
+
+    
+            if e_event == 'handlers_action':
+                elements['action']=get_key(action_elements,e_values['handlers_action'])  
+                update_conf()
+            if e_event == 'handlers_type':
+                elements['type']=get_key(handler_elements,e_values['handlers_type'])
+                update_conf()
+            if e_event == 'handlers_event':
+                  
+                elements['event']=get_key(common_event_elements,e_values['handlers_event'])      
+                update_conf()
+            if e_event == 'handlers_listener':
+                elements['listener']=e_values['handlers_listener']      
+                update_conf()
+            if e_event == 'handlers_alias':
+                elements['alias']=e_values['handlers_alias']      
+                update_conf()
+
+            if e_event == 'handlers_method':
+                elements['method']=e_values['handlers_method']      
+                update_conf()    
+            if e_event == 'handlers_postExecute':
+                elements['postExecute']=e_values['handlers_postExecute'] 
+                update_conf()
+            if e_event == 'btn_save':         
+                break
+            if e_event=='btn_pe':
+                if elements.get('postExecute','')=='' :
+                    dpe = {}
+                    edit_handler_form(None,dpe) 
+                    pe=[dpe]
+                         
+                else:   
+                    pe =json.loads(elements.get('postExecute')) 
+                    edit_handler_form(editwindowh,pe[0])      
+                
+                elements['postExecute']=json.dumps(pe)
+                update_conf()
+                editwindowh['handlers_postExecute'].update(elements['postExecute'])
+
+
+           
+        load_common_handlers()
+          
+        window['CommonHandlersTable'].update(values=data_common_handlers[1:][:])     
+
+        editwindowh.Close() 
+
 def edit_handler_form(row,elements,isCV=False):                   
         global window
 
@@ -1948,6 +2095,9 @@ def init_configuration(window):
     load_timers()
     #load_pyfiles()
     load_mediafiles()
+    load_common_handlers()
+
+    window['CommonHandlersTable'].update(values=data_common_handlers[1:][:])
 
 def read_handlers_file(filename):
     
@@ -2172,8 +2322,8 @@ def write_cofiguration_property(event,value,values):
          configuration_json['ClientConfiguration']['OnlineServiceConfiguration']=value     
     elif event == 'def_service_python':
          configuration_json['ClientConfiguration']['DefServiceConfiguration']=value
-    elif event == 'web_handlers_python':
-         configuration_json['ClientConfiguration']['WebHandlersFile']=value          
+    #elif event == 'web_handlers_python':
+    #     configuration_json['ClientConfiguration']['WebHandlersFile']=value          
     
     elif event == 'confoptions_dictionaries':
          jconfiguration_settings['dictionaries']=value
@@ -2245,10 +2395,11 @@ def load_configuration_properties():
     else:
         window['def_service_python'].update('')
 
-    if 'WebHandlersFile' in configuration_json['ClientConfiguration']:
-        window['web_handlers_python'].update(configuration_json['ClientConfiguration']['WebHandlersFile'])
-    else:
-        window['web_handlers_python'].update('')    
+
+    #if 'WebHandlersFile' in configuration_json['ClientConfiguration']:
+    #    window['web_handlers_python'].update(configuration_json['ClientConfiguration']['WebHandlersFile'])
+    #else:
+    #    window['web_handlers_python'].update('')    
 
 
     if 'OnlineServiceConfiguration' in configuration_json['ClientConfiguration']:
@@ -2396,6 +2547,7 @@ def set_visibility_main_tabs(visibility):
     window['process_column'].update(visible=visibility)
     window['screen_column_left'].update(visible=visibility)
     window['screen_column'].update(visible=visibility)
+    window['tab_layout_common_handlers'].update(visible=visibility)
     #window['menu_column'].update(visible=visibility)
 
 def init_variables():
@@ -2418,7 +2570,8 @@ def init_variables():
     global jcurrent_pyfiles
     global jcurrent_sql_on_start
     global jcurrent_timers
-    global jcurrent_style 
+    global jcurrent_style
+    global jcurrent_common_handlers 
 
     window['timers_table'].update(values=[['','','','']])
     window['pyfiles_table'].update('')
@@ -2441,7 +2594,8 @@ def init_variables():
     jcurrent_pyfiles=None
     jcurrent_sql_on_start=None
     jcurrent_timers=None
-    jcurrent_style=None    
+    jcurrent_style=None
+    jcurrent_common_handlers=None    
     
 def create_project():
     global window
@@ -2513,12 +2667,15 @@ def create_project():
             init_configuration(window)
 
             update_conf()
+
+            arch2_visibility(True)
  
 def open_project():
     global window
     global configuration_json
     global jcurrent_screen
     global conf_filename
+    global handlers_filename
     
     conf_filename = sg.popup_get_file(get_locale("file_open_dialog"),no_window=True,file_types=[("Simple UI configuration text files (*.ui)", "*.ui")])    
 
@@ -2541,6 +2698,11 @@ def open_project():
                 load_screen_handlers()
                 set_visibility(jcurrent_screen)    
                 init_configuration(window)
+
+                if 'arch2' in configuration_json['ClientConfiguration']:
+                    arch2_visibility( configuration_json['ClientConfiguration']['arch2'])
+                else:
+                    arch2_visibility(False)    
 
                 data_recognition = []
                 if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
@@ -2597,6 +2759,21 @@ def shutdown():
 web_thr=None
 server =None       
 
+def arch2_visibility(arch_value):
+
+    global window 
+    global configuration_json
+
+    visibility = not arch_value
+
+    window['tab_configuration_sql_on_start'].update(visible=visibility)
+    window['handlers_cv'].update(visible=visibility)
+    window['screen_handlers'].update(visible=visibility)
+    window['tab_layout_conf_handlers'].update(visible=visibility)
+
+    if arch_value==True:
+        configuration_json['ClientConfiguration']['arch2']  =True 
+   
 
 if __name__ == "__main__":
         
@@ -2626,7 +2803,7 @@ if __name__ == "__main__":
         ]
 
     tab_layout_sql_on_start=[[sg.Button(get_locale('add'),key='add_sql_on_start'), sg.Button(get_locale('delete'),key="delete_sql_on_start")],[sg.Table(values=[['']],headings=[get_locale('command')],key='sql_on_start_table',enable_events=True,expand_x=True)]]
-    tab_layout_menu=[[sg.Button(get_locale('add'),key='add_mainmenu'), sg.Button(get_locale('delete'),key="delete_mainmenu")],[sg.Table(values=[['','','','']],headings=[get_locale('name') ,get_locale('key'),'ID',get_locale('show_in_toolbar')],key='mainmenu_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
+    tab_layout_menu=[[sg.Button(get_locale('add'),key='add_mainmenu'), sg.Button(get_locale('delete'),key="delete_mainmenu")],[sg.Table(values=[['','','','']],headings=[get_locale('name') ,get_locale('key'),'ID',get_locale('show_in_toolbar')],key='mainmenu_table',enable_events=True,expand_x=True,expand_y=True,auto_size_columns=True)]]
     tab_layout_options=[[sg.Text(get_locale('configuration_vendor'),size=35),sg.Input(do_not_clear=True, key='confoptions_vendor',enable_events=True)],
     [sg.Text(get_locale('vendor_url'),size=35),sg.Input(do_not_clear=True, key='confoptions_vendor_url',enable_events=True,expand_x=True)],
     [sg.Text(get_locale('vendor_login_basic') ,size=35),sg.Input(do_not_clear=True, key='confoptions_vendor_login',enable_events=True),sg.Text(get_locale('vendor_password_basic') ),sg.Input(do_not_clear=True, key='confoptions_vendor_password',enable_events=True),sg.Text(get_locale('vendor_authorization_string') ),sg.Input(do_not_clear=True, key='confoptions_vendor_auth',enable_events=True)],
@@ -2638,16 +2815,19 @@ if __name__ == "__main__":
     
     ]
 
-    tab_layout_timers=[[sg.Button(get_locale('add') ,key='add_timers'), sg.Button(get_locale('delete'),key="delete_timers")],[sg.Table(values=[['','','','']],headings=[get_locale('key'),get_locale('period'),get_locale('built_in_handler'),get_locale('handler_name')],key='timers_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
+    tab_layout_timers=[[sg.Button(get_locale('add') ,key='add_timers'), sg.Button(get_locale('delete'),key="delete_timers")],[sg.Table(values=[['','','','']],headings=[get_locale('key'),get_locale('period'),get_locale('built_in_handler'),get_locale('handler_name')],key='timers_table',enable_events=True,expand_x=True,expand_y=True,auto_size_columns=True)]]
 
-    tab_layout_pyfiles=[[sg.Button(get_locale('add'),key='add_pyfiles'), sg.Button(get_locale('delete'),key="delete_pyfiles")],[sg.Table(values=[['','','']],headings=['Имя','Путь','base64'],key='pyfiles_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
+    tab_layout_pyfiles=[[sg.Text(get_locale('python_handlers_file'),size=50), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])],[sg.T('')]
+    ,
+        [sg.Button(get_locale('add'),key='add_pyfiles'), sg.Button(get_locale('delete'),key="delete_pyfiles")],[sg.Table(values=[['','','']],headings=['Имя','Путь','base64'],key='pyfiles_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
 
-    tab_layout_mediafiles=[[sg.Button(get_locale('add'),key='add_mediafiles'), sg.Button(get_locale('delete'),key="delete_mediafiles")],[sg.Table(values=[['','']],headings=['Имя','base64'],key='mediafiles_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
+    tab_layout_mediafiles=[[sg.Button(get_locale('add'),key='add_mediafiles'), sg.Button(get_locale('delete'),key="delete_mediafiles")],[sg.Table(values=[['','']],headings=['Имя','base64'],key='mediafiles_table',enable_events=True,expand_x=True,expand_y=True,auto_size_columns=True)]]
+
+    
 
     layoutFileHandlers= [sg.Text(get_locale('python_handlers_file') ), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])]
 
-    tab_layout_conf_handlers=[[sg.Text(get_locale('python_handlers_file'),size=50), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])],[sg.T('')]
-    ,[sg.Text(get_locale('web_handlers_file_python') ,size=50),sg.Input(do_not_clear=True, key='web_handlers_python',enable_events=True)],
+    tab_layout_conf_handlers=[
     [sg.Text(get_locale('service_handler_python') ,size=50),sg.Input(do_not_clear=True, key='def_service_python',enable_events=True)],
     [sg.Text(get_locale('service_handler_online') ,size=50),sg.Input(do_not_clear=True, key='def_service_online',enable_events=True,expand_x=True)],
     [sg.Text(get_locale('reply_handler_python') ,size=50),sg.Input(do_not_clear=True, key='def_notification_python',enable_events=True,expand_x=True)],
@@ -2664,6 +2844,25 @@ if __name__ == "__main__":
 
     ]
 
+
+    tab_layout_common_handlers = [
+    [sg.Button(get_locale("add_common_handler"),key='btn_add_common_handler'),sg.Button(get_locale("delete_common_handler"),key='btn_delete_common_handler')],
+    [
+               sg.Table(values=data_common_handlers, headings=headings_common_handlers,auto_size_columns=True,
+                   
+                    display_row_numbers=False,
+                    num_rows=10,
+                    
+                    key='CommonHandlersTable',
+                    selected_row_colors='red on yellow',
+                                      
+                    select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                    bind_return_key =True,
+                    
+                    expand_x=True,expand_y=True) ]
+
+              ] 
+
     tab_layout_json = [[sg.Multiline('',key='json_multiline',expand_x=True,expand_y=True)]    ]
 
     layout_configuration_options = [sg.TabGroup([[sg.Tab(get_locale('common'),tab_layout_common,key='tab_configuration_common'),
@@ -2675,7 +2874,8 @@ if __name__ == "__main__":
     sg.Tab(get_locale('handlers'),tab_layout_conf_handlers,key='tab_layout_conf_handlers'),
     sg.Tab(get_locale('handlers_shedule') ,tab_layout_timers,key='tab_layout_timers'),
     sg.Tab(get_locale('additional_modules') ,tab_layout_pyfiles,key='tab_layout_pyfiles'),
-    sg.Tab(get_locale('mediafiles') ,tab_layout_mediafiles,key='tab_layout_mediafiles')
+    sg.Tab(get_locale('mediafiles') ,tab_layout_mediafiles,key='tab_layout_mediafiles'),
+    sg.Tab(get_locale('common_handlers') ,tab_layout_common_handlers,key='tab_layout_common_handlers')
     ]],key='main_tabs',enable_events=True,expand_x=True)]
 
 
@@ -2684,7 +2884,7 @@ if __name__ == "__main__":
     data=[[get_locale('headings_processes')],['']]
     data_screens=[[get_locale('screens') ],['']]
 
-    menu_def = [['&'+get_locale("file"), ['&'+get_locale('create_project'),'&'+get_locale("open_project"),get_locale("create_debug"),get_locale("qr_settings"),get_locale("sql_console"),get_locale("language")]],['&'+get_locale("project_templates"), ['&'+get_locale("style_templates"),'&'+get_locale("recognition_templates")]],
+    menu_def = [['&'+get_locale("file"), ['&'+get_locale('create_project'),'&'+get_locale("open_project"),get_locale("create_debug"),get_locale("qr_settings"),get_locale("sql_console"),get_locale("language"),get_locale("arch2")]],['&'+get_locale("project_templates"), ['&'+get_locale("style_templates"),'&'+get_locale("recognition_templates")]],
                     ]
     
 
@@ -2816,7 +3016,8 @@ if __name__ == "__main__":
         
         #Main menu- Create Project
         if event==get_locale('create_project') :
-            create_project()           
+            create_project()  
+                 
          
         #----------Creating debug Flask-based *.py-file
         if event==get_locale('create_debug'):
@@ -2993,7 +3194,10 @@ if __name__ == "__main__":
 
                 sg.popup(get_locale("restart_note"),     keep_on_top=True) 
         
-        #open projecr from file
+        if event==get_locale("arch2") :
+            arch2_visibility(True)
+
+        #open project from file
         if event==get_locale("open_project") :
             open_project()
             
@@ -3022,6 +3226,39 @@ if __name__ == "__main__":
             
             row_clicked =  values['mediafiles_table'][0]
             jcurrent_mediafiles = configuration_json['ClientConfiguration']['Mediafile'][row_clicked]
+
+        
+        if event=='btn_add_common_handler' :
+            
+                new_handlers_line = {"alias":"","event":"","action":"","type":"","method":"","postExecute":""}   
+                if not  'CommonHandlers' in configuration_json['ClientConfiguration']:
+                    configuration_json['ClientConfiguration']['CommonHandlers']=[]
+
+                configuration_json['ClientConfiguration']['CommonHandlers'].append(new_handlers_line)
+                edit_common_handler_form(None,configuration_json['ClientConfiguration']['CommonHandlers'][-1]) 
+
+                update_conf()     
+              
+        if event=='btn_delete_common_handler' :
+            
+                if len(values['CommonHandlersTable'])>0:
+                    current_position = values['CommonHandlersTable'][0]
+                    
+                    configuration_json['ClientConfiguration']['CommonHandlers'].pop(current_position)
+                
+
+                    update_conf()  
+
+                    load_common_handlers()
+                    window['CommonHandlersTable'].update(values=data_common_handlers[1:][:])   
+        
+        if event == 'CommonHandlersTable':
+            #print(event)
+            if len(values['CommonHandlersTable'])>0:
+                row_clicked =  values['CommonHandlersTable'][0]
+                jcurrent_screen_line = all_common_handlers_list[row_clicked]
+                
+                edit_common_handler_form(row_clicked,jcurrent_screen_line)
 
         if event == 'add_mediafiles':
                 rlayout = [
