@@ -163,7 +163,7 @@ layout_elements = {"LinearLayout":get_locale("layout"),"Tabs":get_locale("Tabs")
 captions_layout_elements =get_title_list(layout_elements)
 
 detector_elements = {"Barcode":get_locale("barcodes"),"OCR":get_locale("ocr"),"Objects_Full":get_locale("ocr_and_barcodes"),"Objects_OCR":get_locale("objects_ocr"),
-"Objects_Barcode":get_locale("objects_barcode"),"Objects_f1":get_locale("face_detection")}
+"Objects_Barcode":get_locale("objects_barcode"),"Objects_f1":get_locale("face_detection"),"multiscanner":get_locale("multiscanner")}
 captions_detector_elements = get_title_list(detector_elements)
 
 visual_mode_elements = {"list_only":get_locale("list_only"),"green_and_grey":get_locale("green_and_grey"),"green_and_red":get_locale("green_and_red"),"list_and_grey":get_locale("list_and_grey")}
@@ -411,6 +411,7 @@ layout_common_cv =[
     [sg.Text(get_locale("info_header")),sg.Input(do_not_clear=True, key='CVInfo',enable_events=True)],
     [sg.Text(get_locale("camera_mode")),sg.Combo(captions_camera_mode_elements, key='CVCameraDevice',enable_events=True)],
     [sg.Text(get_locale("detector_mode")),sg.Combo(captions_detector_mode_elements, key='CVDetectorMode',enable_events=True)],
+    [sg.Text(get_locale("mask")),sg.Input( key='CVMask',enable_events=True)],
     [sg.Text(get_locale('recognition_template'),size=35),sg.Combo(data_recognition,key='cvrecognition_type',enable_events=True,expand_x=True)]        
     
     ]
@@ -515,6 +516,8 @@ def set_visibility(jcurrent_screen):
             window['CVCameraDevice'].update(get_synonym(camera_mode_elements,jcurrent_screen.get('CVCameraDevice','')))
             window['CVResolution'].update(jcurrent_screen.get('CVResolution'))
             window['CVDetectorMode'].update(get_synonym(detector_mode_elements,jcurrent_screen.get('CVDetectorMode','')))
+
+            window['CVMask'].update(jcurrent_screen.get('CVMask',''))
             
             window['CVFrameOnlineOnCreate'].update(jcurrent_screen.get('CVFrameOnlineOnCreate',''))
             window['CVFrameOnlineOnNewObject'].update(jcurrent_screen.get('CVFrameOnlineOnNewObject',''))
@@ -1426,6 +1429,8 @@ def save_recognition_values_event( jcurrent_recognition,event,values,element=Fal
                 jcurrent_recognition['query'] = b64
     elif event==  'values_list':  
                 jcurrent_recognition['values_list'] = source['values_list'] 
+                if 'cursor' in jcurrent_recognition:
+                    jcurrent_recognition.pop("cursor")
     elif event==  'mesure_qty':  
                 jcurrent_recognition['mesure_qty'] = source['mesure_qty'] 
     elif event==  'min_freq':  
@@ -1444,26 +1449,29 @@ def save_recognition_values_event( jcurrent_recognition,event,values,element=Fal
                 jcurrent_recognition['control_field'] = source['control_field'] 
     elif event==  'result_field':  
                 jcurrent_recognition['result_field'] = source['result_field'] 
-                if 'cursor' in jcurrent_recognition:
-                   cursorstr =  jcurrent_recognition['cursor'][0]
-                   cursorstr['field'] =source['result_field']
-                else:
-                   jcurrent_recognition['cursor']=[]    
-                   jcurrent_recognition['cursor'].append({"field":source['result_field']})
+                if not 'values_list' in jcurrent_recognition:
+                    if 'cursor' in jcurrent_recognition:
+                            cursorstr =  jcurrent_recognition['cursor'][0]
+                            cursorstr['field'] =source['result_field']
+                    else:
+                            jcurrent_recognition['cursor']=[]    
+                            jcurrent_recognition['cursor'].append({"field":source['result_field']})
 
     elif event==  'result_var':  
                 jcurrent_recognition['result_var'] = source['result_var'] 
                 
-                if 'cursor' in jcurrent_recognition:
-                   cursorstr =  jcurrent_recognition['cursor'][0]
-                   cursorstr['var'] =source['result_var']
-                else:
-                   jcurrent_recognition['cursor']=[] 
-                   jcurrent_recognition['cursor'].append({"var":source['result_var']})
+                if not 'values_list' in jcurrent_recognition:
+                    if 'cursor' in jcurrent_recognition:
+                        cursorstr =  jcurrent_recognition['cursor'][0]
+                        cursorstr['var'] =source['result_var']
+                    else:
+                        jcurrent_recognition['cursor']=[] 
+                        jcurrent_recognition['cursor'].append({"var":source['result_var']})
 
       
 def window_recognition():
     global jcurrent_recognition
+    global configuration_json
 
     headings_recognition=[get_locale('name')]
     
@@ -1556,6 +1564,18 @@ def window_recognition():
             data_recognition = update_recognition(window_recognition,False)
             window_recognition['RecognitionTable'].update(values=data_recognition)
 
+        if jcurrent_recognition.get('name','')!='':
+            for process in configuration_json['ClientConfiguration']['Processes']:
+                if process.get("type")=="CVOperation":
+                    for step in process['CVFrames']:
+                        if step.get("RecognitionTemplate")==jcurrent_recognition['name']:
+                            step['CVRecognitionSettings']=json.dumps(jcurrent_recognition,ensure_ascii=False)
+                else:            
+                    for oper in process['Operations']:
+                        if 'Elements' in oper:
+                            for el in oper['Elements']:
+                                if el.get("RecognitionTemplate")==jcurrent_recognition['name']:
+                                    el['VisionSettings']=json.dumps(jcurrent_recognition,ensure_ascii=False)
    
     window_recognition.close()  
 
@@ -2158,6 +2178,8 @@ def save_screen_values(values):
              jcurrent_screen['CVCameraDevice'] = get_key(camera_mode_elements,values['CVCameraDevice'])   
              jcurrent_screen['CVMode'] = get_key(visual_mode_elements,values['CVMode'])   
              jcurrent_screen['CVResolution'] = values['CVResolution']   
+             jcurrent_screen['CVMask'] = values['CVMask']   
+
              jcurrent_screen['CVDetectorMode'] = get_key(detector_mode_elements,values['CVDetectorMode'])   
    
              jcurrent_screen['CVFrameOnlineOnCreate'] = values['CVFrameOnlineOnCreate']     
@@ -2250,6 +2272,8 @@ def save_screen_values_event(event,values):
                 jcurrent_screen['CVMode'] = get_key(visual_mode_elements,values['CVMode'])   
              if event==  'CVResolution':
                 jcurrent_screen['CVResolution'] = values['CVResolution']   
+             if event==  'CVMask':
+                jcurrent_screen['CVMask'] = values['CVMask']      
              if event==  'CVDetectorMode':
                 jcurrent_screen['CVDetectorMode'] = get_key(detector_mode_elements,values['CVDetectorMode'])   
              if event==  'CVFrameOnlineOnCreate':   
@@ -2485,7 +2509,7 @@ def load_configuration_properties():
         if 'vendor_auth' in jconfsettings:
             window['confoptions_vendor_auth'].update(jconfsettings['vendor_auth'])
 
-            if "Basic" in jconfsettings['handler_auth']:
+            if "Basic" in jconfsettings['vendor_auth']:
                 authstring = base64.b64decode(jconfsettings['vendor_auth'][6:]).decode('utf-8')
             
                 window['confoptions_vendor_login'].update(authstring[:authstring.index(':')])
@@ -3119,6 +3143,7 @@ if __name__ == "__main__":
             sqllayout = [
                 [sg.Text(get_locale("sql_query") , size =(15, 1)), sg.Input(default_text="SELECT name FROM sqlite_master WHERE type='table'",key='query',expand_x=True)],
                 [sg.Text(get_locale("sql_params") , size =(15, 1)), sg.Input(key='params',expand_x=True)],
+                [sg.Text(get_locale("DB_Name") , size =(15, 1)), sg.Input(key='db_name',expand_x=True)],
                 
                 [sg.Multiline(key='sql_output',size=(150,20))],
                 [sg.Button(get_locale("send_select"),key='send_select'),sg.Button(get_locale("send_execute"),key='send_execute'), sg.Cancel()]
@@ -3143,7 +3168,7 @@ if __name__ == "__main__":
 
                         try:
                             sqlresponse = requests.post(
-                            'http://'+device_url+'/?mode=SQLQueryText&query='+sqlvalues['query']+'&params='+sqlvalues['params'],
+                            'http://'+device_url+'/?mode=SQLQueryText&query='+sqlvalues['query']+'&params='+sqlvalues['params']+'&db_name='+sqlvalues['db_name'],
                             
                             headers={'Content-Type': 'Application/json; charset=utf-8'}
                             )
@@ -3501,7 +3526,7 @@ if __name__ == "__main__":
                 update_conf()
         
         if event in ['screen_name','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_onaftercreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_onaftercreate','screen_defpython_oninput','CVFrame_detector',
-                'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
+                'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVMask','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
             save_screen_values_event(event,values)  
             
      
