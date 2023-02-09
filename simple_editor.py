@@ -3053,10 +3053,27 @@ if __name__ == "__main__":
 
             list_of_debug=[]
 
+            if 'CommonHandlers' in configuration_json['ClientConfiguration']:    
+                for handler in  configuration_json['ClientConfiguration']['CommonHandlers']:
+                        if handler.get('type')=='python' and  handler.get('method','') [0:1]=="_": 
+                              list_of_debug.append(handler.get('method',''))  
+
             if 'Processes' in configuration_json['ClientConfiguration']:        
+
+                
+
                 for process in configuration_json['ClientConfiguration']['Processes']:
+
+                   
+
                     if process['type']=='Process' and 'Operations' in process:
                         for operation in process['Operations']:
+
+                            if 'Handlers' in operation:
+                                for handler in  operation['Handlers']:
+                                    if handler.get('type')=='python' and  handler.get('method','') [0:1]=="_": 
+                                        list_of_debug.append(handler.get('method',''))  
+
                             if  len(operation.get('DefOnCreate',''))>1: 
                                 if operation.get('DefOnCreate','')[0:1]=="_":
                                     list_of_debug.append(operation.get('DefOnCreate',''))
@@ -3067,6 +3084,11 @@ if __name__ == "__main__":
                             
                     if process['type']=='CVOperation' and 'CVFrames' in process:
                         for operation in process['CVFrames']:
+
+                                if 'Handlers' in operation:
+                                    for handler in  operation['Handlers']:
+                                        if handler.get('type')=='python' and  handler.get('method','') [0:1]=="_": 
+                                            list_of_debug.append(handler.get('method',''))  
                                                                  
                                 if len(operation.get('CVFrameDefOnCreate',''))>0 :
                                     if operation.get('CVFrameDefOnCreate','')[0:1]=="_":
