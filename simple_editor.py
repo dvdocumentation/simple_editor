@@ -2843,7 +2843,7 @@ if __name__ == "__main__":
 
     tab_layout_pyfiles=[[sg.Text(get_locale('python_handlers_file'),size=50), sg.Input(key="conf_file_python",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])],[sg.T('')]
     ,
-        [sg.Button(get_locale('add'),key='add_pyfiles'), sg.Button(get_locale('delete'),key="delete_pyfiles")],[sg.Table(values=[['','','']],headings=['Имя','Путь','base64'],key='pyfiles_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
+        [sg.Button(get_locale('add'),key='add_pyfiles'), sg.Button(get_locale('delete'),key="delete_pyfiles"),sg.Button(get_locale('update'),key="update_pyfiles")],[sg.Table(values=[['','','']],headings=['Имя','Путь','base64'],key='pyfiles_table',enable_events=True,expand_x=True,auto_size_columns=True)]]
 
     tab_layout_mediafiles=[[sg.Button(get_locale('add'),key='add_mediafiles'), sg.Button(get_locale('delete'),key="delete_mediafiles")],[sg.Table(values=[['','']],headings=['Имя','base64'],key='mediafiles_table',enable_events=True,expand_x=True,expand_y=True,auto_size_columns=True)]]
 
@@ -3165,7 +3165,7 @@ if __name__ == "__main__":
             sqllayout = [
                 [sg.Text(get_locale("sql_query") , size =(15, 1)), sg.Input(default_text="SELECT name FROM sqlite_master WHERE type='table'",key='query',expand_x=True)],
                 [sg.Text(get_locale("sql_params") , size =(15, 1)), sg.Input(key='params',expand_x=True)],
-                [sg.Text(get_locale("DB_Name") , size =(15, 1)), sg.Input(key='db_name',expand_x=True)],
+                [sg.Text(get_locale("DB_Name") , size =(15, 1)), sg.Input(default_text="SimpleWMS",key='db_name',expand_x=True)],
                 
                 [sg.Multiline(key='sql_output',size=(150,20))],
                 [sg.Button(get_locale("send_select"),key='send_select'),sg.Button(get_locale("send_execute"),key='send_execute'), sg.Cancel()]
@@ -3344,9 +3344,40 @@ if __name__ == "__main__":
 
                 update_conf()
 
+         #+++ Василий  Кнопка "перезагрузить модули питона"
+        if event == 'update_pyfiles':
+            handlers_filename = values['conf_file_python']
+            if len(handlers_filename) > 0:
+                read_handlers_file(handlers_filename)
+            if not current_uid == None:
+                settings_global.set("handlers_filename" + current_uid, handlers_filename)
+                settings_global.save()
+            configuration_json['ClientConfiguration']['PyFiles'] = []
+
+            #Добавим лист уже загруженных
+            already_loaded =[]
+            for el in data_pyfilenames: #.append({"key": rvalues['pyfiles_key'], "filename": rvalues['pyfiles_file']})
+                if el['key'] in already_loaded:
+                    continue #Каждый файл загружаем только один раз
+                with open(el['filename'], 'r', encoding='utf-8') as file:
+                    data = file.read()
+                    base64file = base64.b64encode(data.encode('utf-8')).decode('utf-8')
+
+
+                    configuration_json['ClientConfiguration']['PyFiles'].append(
+                        {"PyFileKey": el['key'], "PyFileData": base64file})
+                    already_loaded.append(el['key'])
+            load_pyfiles()
+            update_conf()
+        #-----------------        
+
         if event == 'pyfiles_table':
             
-            row_clicked =  values['pyfiles_table'][0]
+            if not values['pyfiles_table']: #+++Василий Исправление вылета
+                row_clicked = 0
+            else:
+                row_clicked = values['pyfiles_table'][0]
+                
             jcurrent_pyfiles = configuration_json['ClientConfiguration']['PyFiles'][row_clicked]
 
         if event == 'add_pyfiles':
