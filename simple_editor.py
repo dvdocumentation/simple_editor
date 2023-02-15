@@ -30,7 +30,7 @@ import pyperclip
 import glob
 
 import ast
-
+import copy
 
 
 WSPORT = 5000
@@ -1728,7 +1728,7 @@ def edit_element_form(row,elements,is_layout=False):
                     current_position = e_values['LayoutTable'][0]
                     if current_position<len(elements['Elements']): 
                         current_element = elements['Elements'][current_position]
-                        elements['Elements'].append(current_element.copy())
+                        elements['Elements'].append(copy.deepcopy(current_element))
                
                 data_container_lines = get_data_container_lines(elements)
                 editwindow['LayoutTable'].update(values=data_container_lines[1:][:])            
