@@ -18,9 +18,13 @@ We are testing it under MS Windows and Linux
 
 ## Installation
 
-### Build from github
+### Install from github
 
-    git clone https://github.com/dvdocumentation/simple_editor.git
-    cd simple_editor
-    pip install -r requirements.txt
-    python ./simple_editor.py
+``` sh
+git clone https://github.com/dvdocumentation/simple_editor.git
+cd simple_editor
+pip install -r requirements.txt
+python ./simple_editor.py
+
+```
+
