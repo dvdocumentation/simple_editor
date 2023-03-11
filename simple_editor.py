@@ -3882,60 +3882,61 @@ if __name__ == "__main__":
                         window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])                    
 
         if event == 'ConfigurationTable':
-            data_selected = [data[row] for row in values[event]]
-            row_selected = values['ConfigurationTable'][0]
-            jcurrent_process = all_processes_list[row_selected]
-            if jcurrent_process['type']=='CVOperation':
-                window['process_name'].update(jcurrent_process.get('CVOperationName'))
-                window['p_not_show'].update(jcurrent_process.get('hidden'))
+            if len(values['ConfigurationTable'])>0:
+                data_selected = [data[row] for row in values[event]]
+                row_selected = values['ConfigurationTable'][0]
+                jcurrent_process = all_processes_list[row_selected]
+                if jcurrent_process['type']=='CVOperation':
+                    window['process_name'].update(jcurrent_process.get('CVOperationName'))
+                    window['p_not_show'].update(jcurrent_process.get('hidden'))
 
-                window['DefineOnBackPressed'].update(visible=False)
-                window['login_screen'].update(visible=False)
-                window['SC'].update(visible=False)
-                window['PlanFactHeader'].update(visible=False)
-                window['pf_header'].update(visible=False)
- 
-                load_cvsteps(True)
-                window['ScreensTable'].update(values=data_screens[1:][:])
+                    window['DefineOnBackPressed'].update(visible=False)
+                    window['login_screen'].update(visible=False)
+                    window['SC'].update(visible=False)
+                    window['PlanFactHeader'].update(visible=False)
+                    window['pf_header'].update(visible=False)
 
-                if(len(data_screens[1:][:])>0):
-                    window['ScreensTable'].update(select_rows =[0])
+                    load_cvsteps(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:])
 
-                load_screen_handlers()
-                window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])    
+                    if(len(data_screens[1:][:])>0):
+                        window['ScreensTable'].update(select_rows =[0])
 
-            else:    
-                window['process_name'].update(jcurrent_process['ProcessName'])
+                    load_screen_handlers()
+                    window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])
 
-                window['p_not_show'].update(jcurrent_process.get('hidden'))
+                else:
+                    window['process_name'].update(jcurrent_process['ProcessName'])
 
-                window['DefineOnBackPressed'].update(visible=True)
-                window['login_screen'].update(visible=True)
-                window['SC'].update(visible=True)
-                window['PlanFactHeader'].update(visible=True) 
-                window['pf_header'].update(visible=True)
+                    window['p_not_show'].update(jcurrent_process.get('hidden'))
 
-                window['DefineOnBackPressed'].update(jcurrent_process.get('DefineOnBackPressed'))
-                window['login_screen'].update(jcurrent_process.get('login_screen'))
-                window['SC'].update(jcurrent_process.get('SC'))
-                window['PlanFactHeader'].update(jcurrent_process.get('PlanFactHeader'))  
+                    window['DefineOnBackPressed'].update(visible=True)
+                    window['login_screen'].update(visible=True)
+                    window['SC'].update(visible=True)
+                    window['PlanFactHeader'].update(visible=True)
+                    window['pf_header'].update(visible=True)
+
+                    window['DefineOnBackPressed'].update(jcurrent_process.get('DefineOnBackPressed'))
+                    window['login_screen'].update(jcurrent_process.get('login_screen'))
+                    window['SC'].update(jcurrent_process.get('SC'))
+                    window['PlanFactHeader'].update(jcurrent_process.get('PlanFactHeader'))
 
 
-                load_screens(True)
-                window['ScreensTable'].update(values=data_screens[1:][:])
-                load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
-                window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
+                    load_screens(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:])
+                    load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
 
-                load_screen_handlers()
-                window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
 
-                if(len(data_screens[1:][:])>0):
-                    window['ScreensTable'].update(select_rows =[0])
-       
-    
-                window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
-                if(len(data_screen_lines[1:][:])>0):    
-                    window['ScreenLinesTable'].update(select_rows =[0])
+                    if(len(data_screens[1:][:])>0):
+                        window['ScreensTable'].update(select_rows =[0])
+
+
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
+                    if(len(data_screen_lines[1:][:])>0):
+                        window['ScreenLinesTable'].update(select_rows =[0])
 
         if event == get_locale("style_templates"):
             window_styles()
