@@ -31,6 +31,7 @@ import glob
 
 import ast
 import copy
+import re
 
 
 WSPORT = 5000
@@ -82,6 +83,8 @@ def get_locale(key):
 #global variables
 conf_filename=None
 handlers_filename=None
+classes_filename=None
+generator_filename=None
 
 current_uid=None
 
@@ -110,6 +113,9 @@ data_mainmenu=[]
 data_screen_lines = []
 columns = ['','','']
 
+thread=None
+writing_classes=False
+
 code_files={}
 
 columns_handlers = ['','','','']
@@ -126,7 +132,7 @@ headings_screen_lines = [get_locale("screen_element"),get_locale("value"),get_lo
 headings_screen_handlers = [get_locale("event"),get_locale("action"),get_locale("listener"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
 headings_common_handlers = [get_locale("alias"),get_locale("event"),get_locale("action"),get_locale("listener"),get_locale("handlertype"),get_locale("method"),get_locale("postExecute")]
 
-action_elements = {"run":get_locale("run"),"runasync":get_locale("runasync")}
+action_elements = {"run":get_locale("run"),"runasync":get_locale("runasync"),"runprogress":get_locale("runprogress")}
 captions_action_elements = get_title_list(action_elements)
 
 event_elements = {"onStart":get_locale("onStart"),"onPostStart":get_locale("onPostStart"),"onInput":get_locale("onInput")}
@@ -142,7 +148,7 @@ event_elements_cv = {"OnCreate":get_locale("OnCreate"),"OnObjectDetected":get_lo
 captions_event_elements_cv = get_title_list(event_elements_cv)
 
 
-handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"httpworker":get_locale("httpworker"),"worker":get_locale("worker"),"set":get_locale("set")}
+handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"pythonargs":get_locale("pythonargs"),"set":get_locale("set")}
 captions_handler_elements = get_title_list(handler_elements)
 
 
@@ -153,17 +159,17 @@ all_common_handlers_list = []
 
 screen_elements = {"LinearLayout":get_locale("layout"),"barcode":get_locale("barcode"),"HorizontalGallery":get_locale("horizontal_gallery"),
 "voice":get_locale("voice_input"),"photo":get_locale("camera_capture"),"photoGallery":get_locale("gallery"),"voice":get_locale("tts"),"signature":get_locale("signature"),
-"Vision":get_locale("ocr"),"Cart":get_locale("cart"),"Tiles":get_locale("tiles"),"ImageSlider":get_locale("image_slider"),"MenuItem":get_locale("menu_item"),"Tabs":get_locale("Tabs"),"Tab":get_locale("Tab")}
+"Vision":get_locale("ocr"),"Cart":get_locale("cart"),"Tiles":get_locale("tiles"),"ImageSlider":get_locale("image_slider"),"MenuItem":get_locale("menu_item"),"Tabs":get_locale("Tabs"),"Tab":get_locale("Tab"),"fab":get_locale("fab")}
 captions_screen_elements = get_title_list(screen_elements)
 
 layout_elements = {"LinearLayout":get_locale("layout"),"Tabs":get_locale("Tabs"),"Tab":get_locale("Tab"),"TextView":get_locale("title"),"Button":get_locale("button"),
 "EditTextText":get_locale("string_input"),"EditTextNumeric":get_locale("numeric_input"),"EditTextPass":get_locale("password_input"),"EditTextAuto":get_locale("event_input"),"EditTextAutocomplete":get_locale("autocompete_input"),
 "ModernEditText":get_locale("modern_input"),"Picture":get_locale("picture"),"CheckBox":get_locale("checkbox"),"Gauge":get_locale("gauge"),"Chart":get_locale("chart"),"SpinnerLayout":get_locale("spinner"),"TableLayout":get_locale("table"),"CartLayout":get_locale("cart"),
-"MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button"),"html":get_locale("HTML"),"map":get_locale("map"),"file":get_locale("file")}
+"MultilineText":get_locale("multiline"),"CardsLayout":get_locale("cards"),"CButtons":get_locale("buttons_list"),"CButtonsHorizontal":get_locale("horizontal_buttons_list"),"DateField":get_locale("date_input"),"ProgressButton":get_locale("progress_button"),"html":get_locale("HTML"),"map":get_locale("map"),"file":get_locale("file"),"object":get_locale("object")}
 captions_layout_elements =get_title_list(layout_elements)
 
 detector_elements = {"Barcode":get_locale("barcodes"),"OCR":get_locale("ocr"),"Objects_Full":get_locale("ocr_and_barcodes"),"Objects_OCR":get_locale("objects_ocr"),
-"Objects_Barcode":get_locale("objects_barcode"),"Objects_f1":get_locale("face_detection"),"multiscanner":get_locale("multiscanner")}
+"Objects_Barcode":get_locale("objects_barcode"),"Objects_f1":get_locale("face_detection"),"multiscanner":get_locale("multiscanner"),"featurescanner":get_locale("featurescanner")}
 captions_detector_elements = get_title_list(detector_elements)
 
 visual_mode_elements = {"list_only":get_locale("list_only"),"green_and_grey":get_locale("green_and_grey"),"green_and_red":get_locale("green_and_red"),"list_and_grey":get_locale("list_and_grey")}
@@ -195,6 +201,8 @@ captions_gravity_elements = get_title_list(gravity_elements)
 vertical_gravity_elements = {"top":get_locale("top"),"bottom":get_locale("bottom"),"center":get_locale("center")}
 captions_vertical_gravity_elements = get_title_list(vertical_gravity_elements)
 
+
+
 #updating python handlers code in SimpleUI configuration in thread
 class CodeUpdateThread(Thread):
     def __init__(self, event):
@@ -203,8 +211,12 @@ class CodeUpdateThread(Thread):
 
     def run(self):
         while not self.stopped.wait(1):
+            if not  classes_filename ==None:
+                if len(classes_filename)>0:
+                    read_classes_file(classes_filename)
+
             if not  handlers_filename ==None:
-                if len(handlers_filename)>0:
+                if len(handlers_filename)>0 and not writing_classes:
                     read_handlers_file(handlers_filename)
 
                     #additional python file update
@@ -975,7 +987,9 @@ def show_edit(type,editwindow,jelement,is_layout=False):
         [sg.Text('Шаблон стиля',size=35),sg.Combo(style_elements,key='style_name',enable_events=True,default_value= jelement.get('style_name',''),size = 35)],
         layoutStyle,
         layoutRecognition,
+        show_icon('Value',jelement,get_locale('icon')),
         [sg.Button(get_locale('save'),key='btn_save_layout_line')]
+        
         ]
         
         window1 = sg.Window(get_locale('screen_element'),icon='ic_32.ico',modal=True).Layout(layout)
@@ -1781,6 +1795,12 @@ def edit_element_form(row,elements,is_layout=False):
                 save_style_values_event(elements,e_event,e_values,True)
                 #set_visibility_style(editwindow,elements,True,elements.get('type')=='LinearLayout')
                 update_conf()
+            if e_event == 'Value':
+                e_event="value"
+                e_values['value']=e_values['Value']
+                editwindow['value'].update(e_values['value'])
+                save_style_values_event(elements,e_event,e_values,True)
+                update_conf()
             if e_event=='recognition_type':
                 #Временное решение
                 if 'RecognitionTemplates' in configuration_json['ClientConfiguration']:
@@ -2119,6 +2139,43 @@ def init_configuration(window):
 
     window['CommonHandlersTable'].update(values=data_common_handlers[1:][:])
 
+
+def read_classes_file(filename):
+    
+    global configuration_json
+
+    data=''
+    jdata =[]
+
+    if len(filename)>0:
+        with open(filename, 'r',encoding='utf-8') as file:
+            data = file.read()
+            jdata=json.loads(data)
+        configuration_json['ClientConfiguration']['Classes'] =jdata
+
+def write_classes_file(filename):
+    
+    global configuration_json
+
+    if len(filename)>0:
+        with open(filename, 'w',encoding='utf-8') as file:
+            json.dump(configuration_json['ClientConfiguration']['Classes'],file,ensure_ascii=False,indent=4)
+
+def read_generator_file(filename):
+    
+    global configuration_json
+
+    data=''
+   
+
+    if len(filename)>0:
+        with open(filename, 'r',encoding='utf-8') as file:
+            data = file.read()
+        
+    return data    
+
+          
+         
 def read_handlers_file(filename):
     
     global configuration_json
@@ -2577,6 +2634,7 @@ def set_visibility_main_tabs(visibility):
 def init_variables():
     global window
     global handlers_filename
+    global classes_filename
     global data_mediafiles
     global data_pyfiles
     global data_pyfilenames
@@ -2601,6 +2659,8 @@ def init_variables():
     window['pyfiles_table'].update('')
 
     handlers_filename=None
+    classes_filename=None
+
     data_mediafiles=[]
     data_pyfiles=[]
     data_pyfilenames=[]
@@ -2620,7 +2680,51 @@ def init_variables():
     jcurrent_timers=None
     jcurrent_style=None
     jcurrent_common_handlers=None    
+
+ 
+
+def module_from_file(module_name, file_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+def generate_forms():
+    from importlib import import_module
+
+    global classes_filename
+    global configuration_json 
+    global writing_classes
+    global generator_filename
+
     
+    
+    generator_name = os.path.basename(generator_filename).strip('.py')
+
+    imp =module_from_file(generator_name,generator_filename)
+
+    func = getattr(imp,"generate")
+
+    configuration_json = func(configuration_json)
+
+
+
+   
+                      
+    #if  thread.IsAlive():
+    writing_classes=True
+
+    write_classes_file(classes_filename)
+
+    writing_classes=False
+
+    update_conf()
+
+    load_processes()
+    window['ConfigurationTable'].update(values=data[1:][:])
+
+
 def create_project():
     global window
     global configuration_json
@@ -2700,6 +2804,7 @@ def open_project():
     global jcurrent_screen
     global conf_filename
     global handlers_filename
+    global classes_filename
     
     conf_filename = sg.popup_get_file(get_locale("file_open_dialog"),no_window=True,file_types=[("Simple UI configuration text files (*.ui)", "*.ui")])    
 
@@ -2736,6 +2841,11 @@ def open_project():
                 window['cvrecognition_type'].update(values = data_recognition)
 
                 update_conf(False)  
+
+                if not current_uid==None:
+                    classes_filename =  settings_global.get("classes_filename"+current_uid)
+                    if not classes_filename == None:
+                        window['classes_file'].update(classes_filename)    
 
                 if not current_uid==None:
                     handlers_filename =  settings_global.get("handlers_filename"+current_uid)
@@ -2859,6 +2969,13 @@ if __name__ == "__main__":
 
     ]
 
+    tab_layout_classes=[[sg.Text(get_locale('generator_file'),size=50), sg.Input(key="generator_file",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Python files (*.py)", "*.py")])],
+         [sg.Text(get_locale('classes_file'),size=50), sg.Input(key="classes_file",enable_events=True,expand_x=True), sg.FileBrowse(file_types=[("Class files (*.json)", "*.json")])],[sg.T('')],
+                        [sg.Button(get_locale("generate_forms"),key='btn_generate_forms',size=50)],
+                        [sg.Multiline(key='generator_info', expand_x=True, expand_y=True,size=(150,20))]
+                        ]
+ 
+
     tab_layout_start_screen=[
         
         [sg.Text(get_locale('menu_type'),size=35),sg.Combo(captions_start_screen_elements, key='Launch',enable_events=True,expand_x=True)],
@@ -2899,7 +3016,8 @@ if __name__ == "__main__":
     sg.Tab(get_locale('handlers_shedule') ,tab_layout_timers,key='tab_layout_timers'),
     sg.Tab(get_locale('additional_modules') ,tab_layout_pyfiles,key='tab_layout_pyfiles'),
     sg.Tab(get_locale('mediafiles') ,tab_layout_mediafiles,key='tab_layout_mediafiles'),
-    sg.Tab(get_locale('common_handlers') ,tab_layout_common_handlers,key='tab_layout_common_handlers')
+    sg.Tab(get_locale('common_handlers') ,tab_layout_common_handlers,key='tab_layout_common_handlers'),
+    sg.Tab(get_locale('generators') ,tab_layout_classes,key='tab_layout_classes')
     ]],key='main_tabs',enable_events=True,expand_x=True)]
 
 
@@ -3143,7 +3261,8 @@ if __name__ == "__main__":
                 with open(debug_output_filename, 'w', encoding='utf-8') as f:
                     f.write(outputcode)
                     f.close()
-
+        if event ==get_locale("btn_generate_forms"):    
+                generate_forms()
         #----------Create SimpleUI configuration settings QR code for device connection. 
         # The URL of the service must be encoded in the QR code. 
         # This is the IP address of the computer running the constructor and the port of the Flask server.
@@ -3529,6 +3648,28 @@ if __name__ == "__main__":
                 settings_global.set("handlers_filename"+current_uid, handlers_filename)
                 settings_global.save()
 
+        if event=='classes_file':
+            classes_filename=values['classes_file']
+            if len(classes_filename)>0:
+                read_classes_file(classes_filename)
+            if not current_uid == None:
+                settings_global.set("classes_filename"+current_uid, classes_filename)
+                settings_global.save()        
+        
+        if event=='generator_file':
+            generator_filename=values['generator_file']
+
+            generator_name = os.path.basename(generator_filename).strip('.py')
+
+            imp =module_from_file(generator_name,generator_filename)
+
+            func = getattr(imp,"info")
+
+            str_info = func()
+
+            window['generator_info'].update(str_info)
+            
+
         if event=='process_name':    
             if  jcurrent_process['type']=="Process":
                 jcurrent_process['ProcessName']= values['process_name']
@@ -3579,7 +3720,7 @@ if __name__ == "__main__":
                 update_conf()
         
         if event in ['screen_name','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_onaftercreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_onaftercreate','screen_defpython_oninput','CVFrame_detector',
-                'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVMask','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
+                'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVMask','CVDetector','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
             save_screen_values_event(event,values)  
             
      
@@ -3881,60 +4022,61 @@ if __name__ == "__main__":
                         window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])                    
 
         if event == 'ConfigurationTable':
-            data_selected = [data[row] for row in values[event]]
-            row_selected = values['ConfigurationTable'][0]
-            jcurrent_process = all_processes_list[row_selected]
-            if jcurrent_process['type']=='CVOperation':
-                window['process_name'].update(jcurrent_process.get('CVOperationName'))
-                window['p_not_show'].update(jcurrent_process.get('hidden'))
+            if len(values['ConfigurationTable'])>0:
+                data_selected = [data[row] for row in values[event]]
+                row_selected = values['ConfigurationTable'][0]
+                jcurrent_process = all_processes_list[row_selected]
+                if jcurrent_process['type']=='CVOperation':
+                    window['process_name'].update(jcurrent_process.get('CVOperationName'))
+                    window['p_not_show'].update(jcurrent_process.get('hidden'))
 
-                window['DefineOnBackPressed'].update(visible=False)
-                window['login_screen'].update(visible=False)
-                window['SC'].update(visible=False)
-                window['PlanFactHeader'].update(visible=False)
-                window['pf_header'].update(visible=False)
- 
-                load_cvsteps(True)
-                window['ScreensTable'].update(values=data_screens[1:][:])
-
-                if(len(data_screens[1:][:])>0):
-                    window['ScreensTable'].update(select_rows =[0])
-
-                load_screen_handlers()
-                window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])    
-
-            else:    
-                window['process_name'].update(jcurrent_process['ProcessName'])
-
-                window['p_not_show'].update(jcurrent_process.get('hidden'))
-
-                window['DefineOnBackPressed'].update(visible=True)
-                window['login_screen'].update(visible=True)
-                window['SC'].update(visible=True)
-                window['PlanFactHeader'].update(visible=True) 
-                window['pf_header'].update(visible=True)
-
-                window['DefineOnBackPressed'].update(jcurrent_process.get('DefineOnBackPressed'))
-                window['login_screen'].update(jcurrent_process.get('login_screen'))
-                window['SC'].update(jcurrent_process.get('SC'))
-                window['PlanFactHeader'].update(jcurrent_process.get('PlanFactHeader'))  
-
-
-                load_screens(True)
-                window['ScreensTable'].update(values=data_screens[1:][:])
-                load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
-                window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
-
-                load_screen_handlers()
-                window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
-
-                if(len(data_screens[1:][:])>0):
-                    window['ScreensTable'].update(select_rows =[0])
-       
+                    window['DefineOnBackPressed'].update(visible=False)
+                    window['login_screen'].update(visible=False)
+                    window['SC'].update(visible=False)
+                    window['PlanFactHeader'].update(visible=False)
+                    window['pf_header'].update(visible=False)
     
-                window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
-                if(len(data_screen_lines[1:][:])>0):    
-                    window['ScreenLinesTable'].update(select_rows =[0])
+                    load_cvsteps(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:])
+
+                    if(len(data_screens[1:][:])>0):
+                        window['ScreensTable'].update(select_rows =[0])
+
+                    load_screen_handlers()
+                    window['ScreenHandlersTableCV'].update(values=data_screen_handlers[1:][:])    
+
+                else:    
+                    window['process_name'].update(jcurrent_process['ProcessName'])
+
+                    window['p_not_show'].update(jcurrent_process.get('hidden'))
+
+                    window['DefineOnBackPressed'].update(visible=True)
+                    window['login_screen'].update(visible=True)
+                    window['SC'].update(visible=True)
+                    window['PlanFactHeader'].update(visible=True) 
+                    window['pf_header'].update(visible=True)
+
+                    window['DefineOnBackPressed'].update(jcurrent_process.get('DefineOnBackPressed'))
+                    window['login_screen'].update(jcurrent_process.get('login_screen'))
+                    window['SC'].update(jcurrent_process.get('SC'))
+                    window['PlanFactHeader'].update(jcurrent_process.get('PlanFactHeader'))  
+
+
+                    load_screens(True)
+                    window['ScreensTable'].update(values=data_screens[1:][:])
+                    load_screen_lines(jcurrent_screen['type']=="CVFrame",True)
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:])
+
+                    load_screen_handlers()
+                    window['ScreenHandlersTable'].update(values=data_screen_handlers[1:][:])
+
+                    if(len(data_screens[1:][:])>0):
+                        window['ScreensTable'].update(select_rows =[0])
+        
+        
+                    window['ScreenLinesTable'].update(values=data_screen_lines[1:][:]) 
+                    if(len(data_screen_lines[1:][:])>0):    
+                        window['ScreenLinesTable'].update(select_rows =[0])
 
         if event == get_locale("style_templates"):
             window_styles()

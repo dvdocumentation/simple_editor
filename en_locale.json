@@ -268,7 +268,11 @@
     "common_handlers":"Common handlers",
     "new_handlers_cv":"Handlers (2.0)",
     "add_common_handler":"Add",
-    "delete_common_handler":"Delete"
-
+    "delete_common_handler":"Delete",
+    "generators":"Generators",
+    "generator_file":"Generators file",
+    "classes_file":"Classes file",
+    "generate_forms":"Run",
+    "fab":"Floating action button"
 
 }

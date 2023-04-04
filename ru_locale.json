@@ -35,7 +35,7 @@
     "image_slider":"Галерея слайдер",
     "html":"Поле HTML",
     "map":"Поле карты",
-    "menu_item":"Элмент меню",
+    "menu_item":"Элемент меню",
     "title":"Надпись",
     "button":"Кнопка",
     "string_input":"Поле ввода строка",
@@ -266,7 +266,12 @@
     "common_handlers":"Общие обработчики",
     "new_handlers_cv":"Обработчики (2.0)",
     "add_common_handler":"Добавить",
-    "delete_common_handler":"Удалить"
+    "delete_common_handler":"Удалить",
+    "generators":"Генераторы",
+    "generator_file":"Файл генератора",
+    "classes_file":"Файл классов",
+    "generate_forms":"Запуск",
+    "fab":"Плавающая кнопка"
 
 
 
