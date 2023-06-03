@@ -139,7 +139,7 @@ event_elements = {"onStart":get_locale("onStart"),"onPostStart":get_locale("onPo
 captions_event_elements = get_title_list(event_elements)
 
 common_event_elements = {"onLaunch":get_locale("onLaunch"),"onIntentBarcode":get_locale("onIntentBarcode"),"onBluetoothBarcode":get_locale("onBluetoothBarcode"),"onBackgroundCommand":get_locale("onBackgroundCommand"),"onRecognitionListenerResult":get_locale("onRecognitionListenerResult"),
-"onIntent":get_locale("onIntent"),"onWebServiceSyncCommand":get_locale("onWebServiceSyncCommand"),"onSQLDataChange":get_locale("onSQLDataChange"),"onSQLError":get_locale("onSQLError"),"onOpenFile":get_locale("onOpenFile")}
+"onIntent":get_locale("onIntent"),"onWebServiceSyncCommand":get_locale("onWebServiceSyncCommand"),"onSQLDataChange":get_locale("onSQLDataChange"),"onSQLError":get_locale("onSQLError"),"onOpenFile":get_locale("onOpenFile"),"onCloseApp":get_locale("onCloseApp"),"WSIncomeMessage":get_locale("WSIncomeMessage")}
 captions_common_event_elements = get_title_list(common_event_elements)
 
 #,"onNotificationReply":get_locale("onNotificationReply")
@@ -148,7 +148,7 @@ event_elements_cv = {"OnCreate":get_locale("OnCreate"),"OnObjectDetected":get_lo
 captions_event_elements_cv = get_title_list(event_elements_cv)
 
 
-handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"pythonargs":get_locale("pythonargs"),"set":get_locale("set")}
+handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"pythonargs":get_locale("pythonargs"),"set":get_locale("set"),"pythonbytes":get_locale("pythonbytes")}
 captions_handler_elements = get_title_list(handler_elements)
 
 
@@ -169,7 +169,7 @@ layout_elements = {"LinearLayout":get_locale("layout"),"Tabs":get_locale("Tabs")
 captions_layout_elements =get_title_list(layout_elements)
 
 detector_elements = {"Barcode":get_locale("barcodes"),"OCR":get_locale("ocr"),"Objects_Full":get_locale("ocr_and_barcodes"),"Objects_OCR":get_locale("objects_ocr"),
-"Objects_Barcode":get_locale("objects_barcode"),"Objects_f1":get_locale("face_detection"),"multiscanner":get_locale("multiscanner"),"featurescanner":get_locale("featurescanner")}
+"Objects_Barcode":get_locale("objects_barcode"),"Objects_f1":get_locale("face_detection"),"multiscanner":get_locale("multiscanner"),"globalmultiscanner":get_locale("globalmultiscanner"),"featurescanner":get_locale("featurescanner"),"object_opencv":get_locale("object_opencv"),"face_opencv":get_locale("face_opencv")}
 captions_detector_elements = get_title_list(detector_elements)
 
 visual_mode_elements = {"list_only":get_locale("list_only"),"green_and_grey":get_locale("green_and_grey"),"green_and_red":get_locale("green_and_red"),"list_and_grey":get_locale("list_and_grey")}
@@ -460,7 +460,8 @@ cv_layout_new_handlers = [
                             
               ]
 
-layout_lines = [[sg.Button(get_locale("add_screen_element"),key='btn_add_screen_line'),sg.Button(get_locale("delete_screen_element"),key='btn_delete_screen_line'),sg.Button(get_locale("insert_from_clipboard"),key='btn_insert_from_clipboard_screen_line')],[
+layout_lines = [[sg.Text(get_locale("layout_file") ,size=50),sg.Input(key='layout_file',enable_events=True,expand_x=True)],
+     [sg.Button(get_locale("add_screen_element"),key='btn_add_screen_line'),sg.Button(get_locale("delete_screen_element"),key='btn_delete_screen_line'),sg.Button(get_locale("insert_from_clipboard"),key='btn_insert_from_clipboard_screen_line')],[
 
                   sg.Table(values=data_screen_lines[1:][:], headings=headings_screen_lines,auto_size_columns=True,
                    
@@ -556,6 +557,8 @@ def set_visibility(jcurrent_screen):
             window['tab_cv'].update(visible=False)
 
             window['screen_name'].update(jcurrent_screen.get('Name'))
+            
+            window['layout_file'].update(jcurrent_screen.get('layout_file'))
 
             window['cb_screen_timer'].update(jcurrent_screen.get('Timer'))
             window['cb_screen_hide_bottom_bar'].update(jcurrent_screen.get('hideBottomBarScreen'))
@@ -2199,6 +2202,8 @@ def save_screen_values(values):
 
             jcurrent_screen['Name']= values['screen_name']
 
+            jcurrent_screen['layout_file']= values['layout_file']
+
             jcurrent_screen['Timer'] = values['cb_screen_timer'] 
             jcurrent_screen['hideToolBarScreen'] = values['cb_screen_hide_bottom_bar'] 
             jcurrent_screen['noScroll'] = values['cb_screen_hide_bottom_bar'] 
@@ -2271,6 +2276,9 @@ def save_screen_values_event(event,values):
 
             if event==  'cb_screen_timer':  
                 jcurrent_screen['Timer'] = values['cb_screen_timer'] 
+
+            if event==  'layout_file':  
+                jcurrent_screen['layout_file'] = values['layout_file']     
 
             if event==  'cb_screen_hide_bottom_bar':      
                 jcurrent_screen['hideBottomBarScreen'] = values['cb_screen_hide_bottom_bar'] 
@@ -3455,6 +3463,36 @@ if __name__ == "__main__":
 
                     update_conf()     
 
+        if event == 'set_layout_screen':
+                rlayout = [
+        
+                [sg.Text(get_locale("key") , size =(15, 1)), sg.InputText(key='mediafiles_key')],
+                [sg.Text(get_locale("file"), size =(15, 1)), sg.Input(key='mediafiles_file'), sg.FileBrowse()],
+        
+                [sg.Ok(), sg.Cancel()]
+                ]   
+    
+                rwindow = sg.Window(get_locale("edit_record") , rlayout,icon='ic_32.ico')
+                revent, rvalues = rwindow.read()
+                rwindow.close()  
+
+                if revent=='Ok':
+                    if not 'Mediafile' in configuration_json['ClientConfiguration']:
+                        configuration_json['ClientConfiguration']['Mediafile']=[]
+
+                    data=''
+                    ext=''
+                    with open(rvalues['mediafiles_file'], 'rb') as file:
+                        data = file.read()
+                        ext= os.path.splitext(rvalues['mediafiles_file'])[1][1:]
+                    base64file  = base64.b64encode(data).decode('utf-8')   
+
+                    configuration_json['ClientConfiguration']['Mediafile'].append({"MediafileKey":rvalues['mediafiles_key'],"MediafileData":base64file,"MediafileExt":ext})
+                    load_mediafiles()
+
+                    update_conf()     
+
+
         if event == 'delete_pyfiles':
             if jcurrent_pyfiles!=None: 
                 configuration_json['ClientConfiguration']['PyFiles'].remove(jcurrent_pyfiles) 
@@ -3719,7 +3757,7 @@ if __name__ == "__main__":
 
                 update_conf()
         
-        if event in ['screen_name','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_onaftercreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_onaftercreate','screen_defpython_oninput','CVFrame_detector',
+        if event in ['screen_name','layout_file','cb_screen_timer','cb_screen_hide_bottom_bar','cb_screen_no_scroll','cb_screen_hide_toolbar','cb_screen_no_confirmation','cb_screen_keyboard','screen_def_oncreate','screen_def_onaftercreate','screen_def_oninput','screen_defpython_oncreate','screen_defpython_onaftercreate','screen_defpython_oninput','CVFrame_detector',
                 'step_name','CVActionButtons','CVAction','CVInfo','CVCameraDevice','CVMode','CVResolution','CVMask','CVDetector','CVDetectorMode','CVFrameOnlineOnCreate','CVFrameOnlineOnNewObject','CVFrameOnlineAction','CVFrameOnlineOnTouch','CVFrameDefOnCreate','CVFrameDefOnNewObject','CVFrameDefAction','CVFrameDefOnTouch','cvrecognition_type']:
             save_screen_values_event(event,values)  
             
