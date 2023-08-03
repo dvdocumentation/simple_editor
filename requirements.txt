@@ -1,0 +1,6 @@
+easysettings==4.0.1
+Flask==2.2.2
+pyperclip==1.8.2
+PySimpleGUI==4.60.5
+qrcode==7.4.2
+Requests==2.31.0
