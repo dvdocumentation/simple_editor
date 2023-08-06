@@ -3026,7 +3026,7 @@ if __name__ == "__main__":
     sg.Tab(get_locale('mediafiles') ,tab_layout_mediafiles,key='tab_layout_mediafiles'),
     sg.Tab(get_locale('common_handlers') ,tab_layout_common_handlers,key='tab_layout_common_handlers'),
     sg.Tab(get_locale('generators') ,tab_layout_classes,key='tab_layout_classes')
-    ]],key='main_tabs',enable_events=True,expand_x=True)]
+    ]],key='main_tabs',enable_events=True,expand_x=True, size=(None, 250))]
 
 
 
