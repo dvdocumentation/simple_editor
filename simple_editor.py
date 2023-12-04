@@ -139,7 +139,7 @@ event_elements = {"onStart":get_locale("onStart"),"onPostStart":get_locale("onPo
 captions_event_elements = get_title_list(event_elements)
 
 common_event_elements = {"onLaunch":get_locale("onLaunch"),"onIntentBarcode":get_locale("onIntentBarcode"),"onBluetoothBarcode":get_locale("onBluetoothBarcode"),"onBackgroundCommand":get_locale("onBackgroundCommand"),"onRecognitionListenerResult":get_locale("onRecognitionListenerResult"),
-"onIntent":get_locale("onIntent"),"onWebServiceSyncCommand":get_locale("onWebServiceSyncCommand"),"onSQLDataChange":get_locale("onSQLDataChange"),"onSQLError":get_locale("onSQLError"),"onOpenFile":get_locale("onOpenFile"),"onCloseApp":get_locale("onCloseApp"),"WSIncomeMessage":get_locale("WSIncomeMessage")}
+"onIntent":get_locale("onIntent"),"onWebServiceSyncCommand":get_locale("onWebServiceSyncCommand"),"onSQLDataChange":get_locale("onSQLDataChange"),"onSQLError":get_locale("onSQLError"),"onOpenFile":get_locale("onOpenFile"),"onCloseApp":get_locale("onCloseApp"),"WSIncomeMessage":get_locale("WSIncomeMessage"),"onSimpleBusMessage":get_locale("onSimpleBusMessage"),"onSimpleBusConfirmation":get_locale("onSimpleBusConfirmation"),"onWEBMainTabSelected":get_locale("onWEBMainTabSelected")}
 captions_common_event_elements = get_title_list(common_event_elements)
 
 #,"onNotificationReply":get_locale("onNotificationReply")
@@ -148,7 +148,7 @@ event_elements_cv = {"OnCreate":get_locale("OnCreate"),"OnObjectDetected":get_lo
 captions_event_elements_cv = get_title_list(event_elements_cv)
 
 
-handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"pythonargs":get_locale("pythonargs"),"set":get_locale("set"),"pythonbytes":get_locale("pythonbytes")}
+handler_elements = {"python":get_locale("python"),"online":get_locale("online"),"http":get_locale("http"),"sql":get_locale("sql"),"pythonargs":get_locale("pythonargs"),"set":get_locale("set"),"pythonbytes":get_locale("pythonbytes"),"nosql":get_locale("nosql")}
 captions_handler_elements = get_title_list(handler_elements)
 
 
@@ -558,7 +558,10 @@ def set_visibility(jcurrent_screen):
 
             window['screen_name'].update(jcurrent_screen.get('Name'))
             
-            window['layout_file'].update(jcurrent_screen.get('layout_file'))
+            if jcurrent_screen.get('layout_file')!=None:
+                window['layout_file'].update(jcurrent_screen.get('layout_file'))
+            else:    
+                window['layout_file'].update('')
 
             window['cb_screen_timer'].update(jcurrent_screen.get('Timer'))
             window['cb_screen_hide_bottom_bar'].update(jcurrent_screen.get('hideBottomBarScreen'))
@@ -3336,7 +3339,7 @@ if __name__ == "__main__":
 
                         try:
                             sqlresponse = requests.post(
-                            'http://'+device_url+'/?mode=ExecSQL&params='+sqlvalues['params'],
+                            'http://'+device_url+'/?mode=ExecSQL&params='+sqlvalues['params']+'&db_name='+sqlvalues['db_name'],
                             data=sqlvalues['query'],
                             headers={'Content-Type': 'Application/json; charset=utf-8'}
                             )
